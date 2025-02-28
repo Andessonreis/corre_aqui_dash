@@ -22,34 +22,34 @@ importers:
         version: 1.8.1
       baseui:
         specifier: ^15.0.0
-        version: 15.0.0(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(styletron-react@6.1.1(react@19.0.0))
+        version: 15.0.0(@types/react@19.0.10)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styletron-react@6.1.1(react@18.3.1))
       formik:
         specifier: ^2.4.6
-        version: 2.4.6(react@19.0.0)
+        version: 2.4.6(react@18.3.1)
       next:
         specifier: 15.2.0
-        version: 15.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 15.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react:
-        specifier: ^19.0.0
-        version: 19.0.0
+        specifier: ^18.3.1
+        version: 18.3.1
       react-auth-kit:
         specifier: ^3.1.3
-        version: 3.1.3(next@15.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 3.1.3(next@15.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-dom:
-        specifier: ^19.0.0
-        version: 19.0.0(react@19.0.0)
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
       react-icons:
         specifier: ^5.5.0
-        version: 5.5.0(react@19.0.0)
+        version: 5.5.0(react@18.3.1)
       react-virtualized-auto-sizer:
         specifier: ^1.0.25
-        version: 1.0.25(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 1.0.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       styletron-engine-atomic:
         specifier: ^1.6.2
         version: 1.6.2
       styletron-react:
         specifier: ^6.1.1
-        version: 6.1.1(react@19.0.0)
+        version: 6.1.1(react@18.3.1)
       yup:
         specifier: ^1.6.1
         version: 1.6.1
@@ -1905,10 +1905,10 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
 
-  react-dom@19.0.0:
-    resolution: {integrity: sha512-4GV5sHFG0e/0AD4X+ySy6UJd3jVl1iNsNHdpad0qhABJ11twS3TTBnseqsKurKcsNqCEFeGL3uLpVChpIO3QfQ==}
+  react-dom@18.3.1:
+    resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
     peerDependencies:
-      react: ^19.0.0
+      react: ^18.3.1
 
   react-dropzone@9.0.0:
     resolution: {integrity: sha512-wZ2o9B2qkdE3RumWhfyZT9swgJYJPeU5qHEcMU8weYpmLex1eeWX0CC32/Y0VutB+BBi2D+iePV/YZIiB4kZGw==}
@@ -2011,8 +2011,8 @@ packages:
       react: ^15.0.0 || ^16.0.0
       react-dom: ^15.0.0 || ^16.0.0
 
-  react@19.0.0:
-    resolution: {integrity: sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==}
+  react@18.3.1:
+    resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
     engines: {node: '>=0.10.0'}
 
   reflect.getprototypeof@1.0.10:
@@ -2076,8 +2076,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  scheduler@0.25.0:
-    resolution: {integrity: sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==}
+  scheduler@0.23.2:
+    resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
 
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
@@ -3019,7 +3019,7 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
-  baseui@14.0.0(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(styletron-react@6.1.1(react@19.0.0)):
+  baseui@14.0.0(@types/react@19.0.10)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styletron-react@6.1.1(react@18.3.1)):
     dependencies:
       '@date-io/date-fns': 2.17.0(date-fns@2.30.0)
       '@date-io/moment': 2.17.0(moment@2.30.1)
@@ -3036,32 +3036,32 @@ snapshots:
       polished: 4.3.1
       popper.js: 1.16.1
       prop-types: 15.8.1
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      react-dropzone: 9.0.0(react@19.0.0)
-      react-focus-lock: 2.13.6(@types/react@19.0.10)(react@19.0.0)
-      react-hook-form: 7.54.2(react@19.0.0)
-      react-input-mask: 2.0.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-dropzone: 9.0.0(react@18.3.1)
+      react-focus-lock: 2.13.6(@types/react@19.0.10)(react@18.3.1)
+      react-hook-form: 7.54.2(react@18.3.1)
+      react-input-mask: 2.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-is: 17.0.2
-      react-map-gl: 5.2.13(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react-movable: 3.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react-map-gl: 5.2.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-movable: 3.4.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-multi-ref: 1.0.2
-      react-range: 1.10.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react-uid: 2.3.0(@types/react@19.0.10)(react@19.0.0)
-      react-virtualized: 9.22.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react-virtualized-auto-sizer: 1.0.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react-window: 1.8.5(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react-range: 1.10.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-uid: 2.3.0(@types/react@19.0.10)(react@18.3.1)
+      react-virtualized: 9.22.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-virtualized-auto-sizer: 1.0.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-window: 1.8.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       resize-observer-polyfill: 1.5.1
-      styletron-react: 6.1.1(react@19.0.0)
+      styletron-react: 6.1.1(react@18.3.1)
       styletron-standard: 3.1.0
     transitivePeerDependencies:
       - '@types/react'
 
-  baseui@15.0.0(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(styletron-react@6.1.1(react@19.0.0)):
+  baseui@15.0.0(@types/react@19.0.10)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styletron-react@6.1.1(react@18.3.1)):
     dependencies:
       '@date-io/date-fns': 2.17.0(date-fns@2.30.0)
       '@date-io/moment': 2.17.0(moment@2.30.1)
-      baseui: 14.0.0(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(styletron-react@6.1.1(react@19.0.0))
+      baseui: 14.0.0(@types/react@19.0.10)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(styletron-react@6.1.1(react@18.3.1))
       card-validator: 6.2.0
       csstype: 2.6.11
       d3: 6.7.0
@@ -3075,23 +3075,23 @@ snapshots:
       polished: 4.3.1
       popper.js: 1.16.1
       prop-types: 15.8.1
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      react-dropzone: 9.0.0(react@19.0.0)
-      react-focus-lock: 2.13.6(@types/react@19.0.10)(react@19.0.0)
-      react-hook-form: 7.54.2(react@19.0.0)
-      react-input-mask: 2.0.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-dropzone: 9.0.0(react@18.3.1)
+      react-focus-lock: 2.13.6(@types/react@19.0.10)(react@18.3.1)
+      react-hook-form: 7.54.2(react@18.3.1)
+      react-input-mask: 2.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-is: 17.0.2
-      react-map-gl: 5.2.13(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react-movable: 3.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react-map-gl: 5.2.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-movable: 3.4.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-multi-ref: 1.0.2
-      react-range: 1.10.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react-uid: 2.3.0(@types/react@19.0.10)(react@19.0.0)
-      react-virtualized: 9.22.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react-virtualized-auto-sizer: 1.0.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react-window: 1.8.5(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react-range: 1.10.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-uid: 2.3.0(@types/react@19.0.10)(react@18.3.1)
+      react-virtualized: 9.22.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-virtualized-auto-sizer: 1.0.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-window: 1.8.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       resize-observer-polyfill: 1.5.1
-      styletron-react: 6.1.1(react@19.0.0)
+      styletron-react: 6.1.1(react@18.3.1)
       styletron-standard: 3.1.0
     transitivePeerDependencies:
       - '@types/react'
@@ -3220,7 +3220,7 @@ snapshots:
 
   d3-contour@2.0.0:
     dependencies:
-      d3-array: 2.4.0
+      d3-array: 2.12.1
 
   d3-delaunay@5.3.0:
     dependencies:
@@ -3278,7 +3278,7 @@ snapshots:
 
   d3-scale@3.3.0:
     dependencies:
-      d3-array: 2.4.0
+      d3-array: 2.12.1
       d3-format: 2.0.0
       d3-interpolate: 2.0.1
       d3-time: 2.1.1
@@ -3296,7 +3296,7 @@ snapshots:
 
   d3-time@2.1.1:
     dependencies:
-      d3-array: 2.4.0
+      d3-array: 2.12.1
 
   d3-timer@2.0.0: {}
 
@@ -3319,7 +3319,7 @@ snapshots:
 
   d3@6.7.0:
     dependencies:
-      d3-array: 2.4.0
+      d3-array: 2.12.1
       d3-axis: 2.1.0
       d3-brush: 2.1.0
       d3-chord: 2.0.0
@@ -3804,14 +3804,14 @@ snapshots:
       es-set-tostringtag: 2.1.0
       mime-types: 2.1.35
 
-  formik@2.4.6(react@19.0.0):
+  formik@2.4.6(react@18.3.1):
     dependencies:
       '@types/hoist-non-react-statics': 3.3.6
       deepmerge: 2.2.1
       hoist-non-react-statics: 3.3.2
       lodash: 4.17.21
       lodash-es: 4.17.21
-      react: 19.0.0
+      react: 18.3.1
       react-fast-compare: 2.0.4
       tiny-warning: 1.0.3
       tslib: 2.8.1
@@ -4250,7 +4250,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  next@15.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  next@15.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@next/env': 15.2.0
       '@swc/counter': 0.1.3
@@ -4258,9 +4258,9 @@ snapshots:
       busboy: 1.6.0
       caniuse-lite: 1.0.30001701
       postcss: 8.4.31
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      styled-jsx: 5.1.6(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      styled-jsx: 5.1.6(react@18.3.1)
     optionalDependencies:
       '@next/swc-darwin-arm64': 15.2.0
       '@next/swc-darwin-x64': 15.2.0
@@ -4386,9 +4386,9 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prop-types-extra@1.1.1(react@19.0.0):
+  prop-types-extra@1.1.1(react@18.3.1):
     dependencies:
-      react: 19.0.0
+      react: 18.3.1
       react-is: 16.13.1
       warning: 4.0.3
 
@@ -4410,59 +4410,60 @@ snapshots:
 
   quickselect@2.0.0: {}
 
-  react-auth-kit@3.1.3(next@15.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-auth-kit@3.1.3(next@15.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       js-cookie: 3.0.5
-      next: 15.2.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      next: 15.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       rxjs: 7.8.2
 
-  react-clientside-effect@1.2.7(react@19.0.0):
+  react-clientside-effect@1.2.7(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.26.9
-      react: 19.0.0
+      react: 18.3.1
 
-  react-dom@19.0.0(react@19.0.0):
+  react-dom@18.3.1(react@18.3.1):
     dependencies:
-      react: 19.0.0
-      scheduler: 0.25.0
+      loose-envify: 1.4.0
+      react: 18.3.1
+      scheduler: 0.23.2
 
-  react-dropzone@9.0.0(react@19.0.0):
+  react-dropzone@9.0.0(react@18.3.1):
     dependencies:
       attr-accept: 1.1.3
       file-selector: 0.1.19
       prop-types: 15.8.1
-      prop-types-extra: 1.1.1(react@19.0.0)
-      react: 19.0.0
+      prop-types-extra: 1.1.1(react@18.3.1)
+      react: 18.3.1
 
   react-fast-compare@2.0.4: {}
 
-  react-focus-lock@2.13.6(@types/react@19.0.10)(react@19.0.0):
+  react-focus-lock@2.13.6(@types/react@19.0.10)(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.26.9
       focus-lock: 1.3.6
       prop-types: 15.8.1
-      react: 19.0.0
-      react-clientside-effect: 1.2.7(react@19.0.0)
-      use-callback-ref: 1.3.3(@types/react@19.0.10)(react@19.0.0)
-      use-sidecar: 1.1.3(@types/react@19.0.10)(react@19.0.0)
+      react: 18.3.1
+      react-clientside-effect: 1.2.7(react@18.3.1)
+      use-callback-ref: 1.3.3(@types/react@19.0.10)(react@18.3.1)
+      use-sidecar: 1.1.3(@types/react@19.0.10)(react@18.3.1)
     optionalDependencies:
       '@types/react': 19.0.10
 
-  react-hook-form@7.54.2(react@19.0.0):
+  react-hook-form@7.54.2(react@18.3.1):
     dependencies:
-      react: 19.0.0
+      react: 18.3.1
 
-  react-icons@5.5.0(react@19.0.0):
+  react-icons@5.5.0(react@18.3.1):
     dependencies:
-      react: 19.0.0
+      react: 18.3.1
 
-  react-input-mask@2.0.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-input-mask@2.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       invariant: 2.2.4
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       warning: 4.0.3
 
   react-is@16.13.1: {}
@@ -4471,68 +4472,70 @@ snapshots:
 
   react-lifecycles-compat@3.0.4: {}
 
-  react-map-gl@5.2.13(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-map-gl@5.2.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.26.9
       mapbox-gl: 1.13.3
       mjolnir.js: 2.7.3
       prop-types: 15.8.1
-      react: 19.0.0
-      react-virtualized-auto-sizer: 1.0.25(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react: 18.3.1
+      react-virtualized-auto-sizer: 1.0.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       viewport-mercator-project: 7.0.4
     transitivePeerDependencies:
       - react-dom
 
-  react-movable@3.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-movable@3.4.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   react-multi-ref@1.0.2:
     dependencies:
       '@babel/runtime': 7.26.9
 
-  react-range@1.10.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-range@1.10.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react-uid@2.3.0(@types/react@19.0.10)(react@19.0.0):
+  react-uid@2.3.0(@types/react@19.0.10)(react@18.3.1):
     dependencies:
-      react: 19.0.0
+      react: 18.3.1
       tslib: 1.14.1
     optionalDependencies:
       '@types/react': 19.0.10
 
-  react-virtualized-auto-sizer@1.0.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-virtualized-auto-sizer@1.0.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react-virtualized-auto-sizer@1.0.25(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-virtualized-auto-sizer@1.0.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react-virtualized@9.22.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-virtualized@9.22.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.26.9
       clsx: 1.2.1
       dom-helpers: 5.2.1
       loose-envify: 1.4.0
       prop-types: 15.8.1
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       react-lifecycles-compat: 3.0.4
 
-  react-window@1.8.5(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  react-window@1.8.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.26.9
       memoize-one: 5.0.0
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  react@19.0.0: {}
+  react@18.3.1:
+    dependencies:
+      loose-envify: 1.4.0
 
   reflect.getprototypeof@1.0.10:
     dependencies:
@@ -4611,7 +4614,9 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  scheduler@0.25.0: {}
+  scheduler@0.23.2:
+    dependencies:
+      loose-envify: 1.4.0
 
   semver@6.3.1: {}
 
@@ -4765,20 +4770,20 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  styled-jsx@5.1.6(react@19.0.0):
+  styled-jsx@5.1.6(react@18.3.1):
     dependencies:
       client-only: 0.0.1
-      react: 19.0.0
+      react: 18.3.1
 
   styletron-engine-atomic@1.6.2:
     dependencies:
       inline-style-prefixer: 5.1.2
       styletron-standard: 3.1.0
 
-  styletron-react@6.1.1(react@19.0.0):
+  styletron-react@6.1.1(react@18.3.1):
     dependencies:
       prop-types: 15.8.1
-      react: 19.0.0
+      react: 18.3.1
       styletron-standard: 3.1.0
 
   styletron-standard@3.1.0:
@@ -4889,17 +4894,17 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  use-callback-ref@1.3.3(@types/react@19.0.10)(react@19.0.0):
+  use-callback-ref@1.3.3(@types/react@19.0.10)(react@18.3.1):
     dependencies:
-      react: 19.0.0
+      react: 18.3.1
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.0.10
 
-  use-sidecar@1.1.3(@types/react@19.0.10)(react@19.0.0):
+  use-sidecar@1.1.3(@types/react@19.0.10)(react@18.3.1):
     dependencies:
       detect-node-es: 1.1.0
-      react: 19.0.0
+      react: 18.3.1
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.0.10
