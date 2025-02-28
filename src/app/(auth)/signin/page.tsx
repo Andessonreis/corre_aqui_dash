@@ -5,7 +5,6 @@ import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
 import * as Yup from "yup";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebook } from "react-icons/fa";
 import { supabase } from "@/lib/client";
 
 export default function Login() {
@@ -31,7 +30,7 @@ export default function Login() {
       }
     },
   });
-
+/* 
   const handleGoogleSignin = async () => {
     setError(null);
     try {
@@ -50,7 +49,7 @@ export default function Login() {
       if (err instanceof Error) setError(err.message);
     }
   };
-
+ */
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
