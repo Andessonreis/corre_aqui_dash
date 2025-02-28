@@ -74,7 +74,7 @@ export default function Signup() {
         <h1 className="text-2xl font-bold text-center text-red-600">Crie sua conta empresarial</h1>
         <p className="text-sm text-gray-600 text-center mb-4">
           Já tem uma conta?{" "}
-          <a href="/login" className="text-red-600 hover:underline">
+          <a href="/signin" className="text-red-600 hover:underline">
             Faça login
           </a>
         </p>

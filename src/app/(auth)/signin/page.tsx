@@ -55,7 +55,8 @@ export default function Login() {
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center text-red-600">Acesse sua conta</h1>
         <p className="text-sm text-gray-600 text-center mb-4">
-          Ainda não tem uma conta? <a href="#" className="text-red-600 hover:underline">Cadastre-se</a>
+          Ainda não tem uma conta? <a href="/signup" className="text-red-600 hover:underline">Cadastre-se {" "}</a>
+
         </p>
 
         <form onSubmit={formik.handleSubmit} className="space-y-4">
