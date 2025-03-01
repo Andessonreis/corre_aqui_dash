@@ -26,10 +26,16 @@ export default function Login() {
 
   const handleGoogleSignin = async () => {
     setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: {redirectTo: "https://dashboard-correaqui.vercel.app/signin"} });
-    error ? setError(error.message) : router.push("/dashboard");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({ 
+        provider: "google", 
+        options: { 
+          redirectTo: "https://dashboard-correaqui.vercel.app"
+        } 
+      });
+    } catch (err) {}
   };
-
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
