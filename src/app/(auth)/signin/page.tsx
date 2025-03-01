@@ -26,7 +26,7 @@ export default function Login() {
 
   const handleGoogleSignin = async () => {
     setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: "http://localhost:5173" } });
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: {redirectTo: "https://dashboard-correaqui.vercel.app/signin"} });
     error ? setError(error.message) : router.push("/dashboard");
   };
 
