@@ -38,7 +38,7 @@ export default function Signup() {
   const handleGoogleSignup = async () => {
     setError(null);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: "http://localhost:5173" } });
+      const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: "https://dashboard-correaqui.vercel.app" } });
       if (error) throw new Error(error.message);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) router.push("/complete-profile");
