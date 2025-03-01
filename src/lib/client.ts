@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 class SupabaseService {
   private static instance: SupabaseClient;
+  private static cache: Map<string, any> = new Map();
 
   private constructor() {}
 
@@ -26,8 +27,20 @@ class SupabaseService {
         console.log("[Supabase] ✅ Client initialized in development mode.");
       }
     }
-
     return this.instance;
+  }
+
+  public static async fetchWithCache<T>(key: string, fetcher: () => Promise<T>, ttl = 60000): Promise<T> {
+    const now = Date.now();
+    const cached = this.cache.get(key);
+
+    if (cached && now - cached.timestamp < ttl) {
+      return cached.data;
+    }
+
+    const data = await fetcher();
+    this.cache.set(key, { data, timestamp: now });
+    return data;
   }
 }
 
