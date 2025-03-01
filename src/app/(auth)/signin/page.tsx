@@ -33,7 +33,14 @@ export default function Login() {
           redirectTo: "https://dashboard-correaqui.vercel.app"
         } 
       });
-    } catch (err) {}
+      if (error) {
+        console.error("Erro ao fazer login com o Google:", error);
+        setError(error.message);
+      }
+    } catch (err) {
+      console.error("Erro ao tentar fazer login com o Google:", err);
+      setError("Erro ao tentar fazer login com o Google.");
+    }
   };
   
   return (
