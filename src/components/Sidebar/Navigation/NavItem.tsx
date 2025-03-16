@@ -19,7 +19,7 @@ export function NavItem({ title, icon: Icon, variant = 'default', className, hre
       className={`
         group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all
         outline-none focus-visible:ring-2 focus-visible:ring-violet-500
-        ${variant === 'ghost' ? 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50' : 'bg-zinc-100 dark:bg-zinc-800'}
+        ${variant === 'ghost'}
         ${className}
         ${href ? 'cursor-pointer' : ''}
       `}
