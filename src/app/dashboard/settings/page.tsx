@@ -1,6 +1,5 @@
 import { SeetingsTabs } from '@/components/SeetingsTabs'
 import {
-  MyDetails,
   Plan,
   Profile,
 } from './Tabs'
@@ -13,12 +12,7 @@ export default function Home() {
       </h1>
       <SeetingsTabs
         tabs={[
-          {
-            value: 'my-details',
-            title: 'My details',
-            content: <MyDetails />,
-          },
-          { value: 'profile', title: 'Profile', content: <Profile /> },
+          { value: 'profile', title: 'My Profile', content: <Profile /> },
           { value: 'plan', title: 'Plan', content: <Plan /> },
         ]}
       />

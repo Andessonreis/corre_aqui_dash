@@ -16,7 +16,7 @@ interface SeetingsTabsProps {
 }
 
 export function SeetingsTabs({ tabs }: SeetingsTabsProps) {
-  const [currentTab, setCurrentTab] = useState('my-details')
+  const [currentTab, setCurrentTab] = useState('profile')
 
   return (
     <>

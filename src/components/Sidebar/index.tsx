@@ -1,4 +1,5 @@
 "use client";
+
 import { Search, LifeBuoy, Cog, Menu } from "lucide-react";
 import * as Input from "../Form/Input";
 import { Profile } from "./Profile";
@@ -17,10 +18,8 @@ export function Sidebar() {
         data-[state=open]:h-screen h-20
       "
     >
-      {/* Header com logo e botão de menu */}
       <div className="flex h-20 items-center justify-between p-4 lg:px-6 lg:pt-8">
-        {/* ADD logo correta aqui */}
-        <div className="flex-1"></div> {/* Espaço para logo */}
+        <div className="flex-1"></div>
         <Collapsible.Trigger asChild className="lg:hidden">
           <Button variant="ghost" className="rounded-full">
             <Menu className="h-6 w-6 text-zinc-500 dark:text-zinc-400 transition-all hover:scale-110 hover:text-zinc-700 dark:hover:text-zinc-300" />
@@ -28,7 +27,6 @@ export function Sidebar() {
         </Collapsible.Trigger>
       </div>
 
-      {/* Conteúdo da Sidebar */}
       <Collapsible.Content
         asChild
         forceMount
@@ -40,7 +38,6 @@ export function Sidebar() {
         "
       >
         <div className="flex flex-1 flex-col gap-6 px-2 lg:px-4">
-          {/* Barra de pesquisa */}
           <Input.Root className="mx-1 w-auto hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
             <Input.Prefix>
               <Search className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
@@ -54,7 +51,6 @@ export function Sidebar() {
 
           <Navigation />
 
-          {/* Seção inferior fixa */}
           <div className="mt-auto flex flex-col gap-6 pb-6 lg:pb-8">
             <nav className="flex flex-col gap-2">
               <NavItem
@@ -62,7 +58,9 @@ export function Sidebar() {
                 title="Configuração"
                 variant="ghost"
                 className="hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                href="/dashboard/settings"
               />
+
               <NavItem
                 icon={LifeBuoy}
                 title="Suporte"

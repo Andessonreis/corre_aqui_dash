@@ -1,3 +1,2 @@
-export * from './MyDetails/page'
+export * from './Profile/page'
 export * from './Plan'
-export * from './Profile'

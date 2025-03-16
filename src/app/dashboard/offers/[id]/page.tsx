@@ -1,13 +1,13 @@
-export function Offers() {
+'use client'
+
+import { useParams } from 'next/navigation'
+
+export default function OfferPage() {
+  const params = useParams<{ id: string }>()
+
   return (
-    <div className="flex flex-col mt-6">
-      <div className="flex flex-col justify-between pb-5 gap-4 lg:flex-row lg:items-center">
-        <div className="space-y-1">
-          <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-          Offers
-          </h2>
-        </div>
-      </div>
+    <div>
+      <h1>Oferta: {params.id}</h1>
     </div>
   )
 }
