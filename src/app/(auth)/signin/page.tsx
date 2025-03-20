@@ -19,30 +19,76 @@ export default function Login() {
     }),
     onSubmit: async ({ email, password }) => {
       setError(null);
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      error ? setError(error.message) : router.push("/dashboard");
+      
+      // 1. Realiza o login com email e senha
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+      
+      // 2. Obtém o usuário autenticado
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("Usuário não autenticado.");
+        return;
+      }
+
+      // 3. Verifica o registro do proprietário (owners) associado ao usuário
+      const { data: ownerData, error: ownerError } = await supabase
+        .from("owners")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (ownerError) {
+        setError(ownerError.message);
+        return;
+      }
+      
+      if (!ownerData) {
+        // Se o proprietário não existir, o cadastro complementar não foi iniciado
+        router.push("/profile-setup");
+        return;
+      }
+
+      // 4. Verifica se já existe um registro na tabela stores com o owner_id
+      const { data: storeData, error: storeError } = await supabase
+        .from("stores")
+        .select("id")
+        .eq("owner_id", ownerData.id)
+        .maybeSingle();
+
+      if (storeError) {
+        setError(storeError.message);
+        return;
+      }
+
+      if (!storeData) {
+        // Se não existir registro na tabela stores, redireciona para completar o cadastro
+        router.push("/complete-profile");
+      } else {
+        // Se existir, o cadastro está completo, direciona para a dashboard
+        router.push("/dashboard");
+      }
     },
   });
 
   const handleGoogleSignin = async () => {
     setError(null);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ 
-        provider: "google", 
-        options: { 
-          redirectTo: "https://dashboard-correaqui.vercel.app"
-        } 
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: "https://dashboard-correaqui.vercel.app" },
       });
       if (error) {
-        console.error("Erro ao fazer login com o Google:", error);
         setError(error.message);
       }
     } catch (err) {
-      console.error("Erro ao tentar fazer login com o Google:", err);
       setError("Erro ao tentar fazer login com o Google.");
     }
   };
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
@@ -62,7 +108,9 @@ export default function Login() {
                 placeholder={`Digite seu ${field === "password" ? "senha" : "email"}`}
                 {...formik.getFieldProps(field)}
                 className={`w-full px-4 py-2 border rounded-md focus:ring-2 text-gray-700 ${
-                  formik.touched[field] && formik.errors[field] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+                  formik.touched[field] && formik.errors[field]
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-blue-500"
                 }`}
               />
               {formik.touched[field] && formik.errors[field] && (

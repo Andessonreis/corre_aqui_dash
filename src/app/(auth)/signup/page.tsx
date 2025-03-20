@@ -12,23 +12,47 @@ export default function Signup() {
   const router = useRouter();
 
   const formik = useFormik({
-    initialValues: { username: "", email: "", phone: "", password: "" },
+    initialValues: { name: "", email: "", phone: "", password: "" },
     validationSchema: Yup.object({
-      username: Yup.string().required("O nome da empresa é obrigatório"),
+      name: Yup.string().required("O nome da empresa é obrigatório"),
       email: Yup.string().email("Email inválido").required("O email é obrigatório"),
-      phone: Yup.string().matches(/^\d{10,11}$/, "Número de telefone inválido").required("O telefone é obrigatório"),
+      phone: Yup.string().matches(/\d{10,11}/, "Número de telefone inválido").required("O telefone é obrigatório"),
       password: Yup.string().min(6, "A senha deve ter pelo menos 6 caracteres").required("A senha é obrigatória"),
     }),
     onSubmit: async (values) => {
       setError(null);
       try {
-        const { error: supabaseError } = await supabase.auth.signUp({
+        const { data: { user }, error: authError } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
-          options: { data: { username: values.username, phone: values.phone } },
+          options: {
+            data: {
+              name: values.name,
+              phone: values.phone,
+              role: "company",
+            },
+          },
         });
-        if (supabaseError) throw new Error(supabaseError.message);
-        router.push("/complete-profile");
+
+        if (authError) throw new Error(authError.message);
+        if (!user) throw new Error("Erro ao criar usuário.");
+
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: user.id,
+              role: "company",
+              name: values.name,
+              phone: values.phone,
+              email: values.email,
+              profile_image_url: "https://example.com/default-avatar.png",
+            },
+          ]);
+
+        if (profileError) throw new Error(`Falha na criação do perfil: ${profileError.message}`);
+
+        router.push("/profile-setup");
       } catch (err) {
         if (err instanceof Error) setError(err.message);
       }
@@ -38,10 +62,18 @@ export default function Signup() {
   const handleGoogleSignup = async () => {
     setError(null);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: "https://dashboard-correaqui.vercel.app" } });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: "https://dashboard-correaqui.vercel.app" },
+      });
+
       if (error) throw new Error(error.message);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) router.push("/complete-profile");
+
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+          router.push("/profile-setup");
+        }
+      });
     } catch (err) {
       if (err instanceof Error) setError(err.message);
     }
@@ -51,21 +83,32 @@ export default function Signup() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center text-red-600">Crie sua conta</h1>
-        <p className="text-sm text-gray-600 text-center mb-4">Já tem uma conta? <a href="/signin" className="text-red-600 hover:underline">Faça login</a></p>
+        <p className="text-sm text-gray-600 text-center mb-4">
+          Já tem uma conta? <a href="/signin" className="text-red-600 hover:underline">Faça login</a>
+        </p>
         <form onSubmit={formik.handleSubmit} className="space-y-4">
-          {["username", "email", "phone", "password"].map((field) => (
+          {[
+            { field: "name", label: "Nome da Empresa", type: "text", placeholder: "Digite o nome da empresa" },
+            { field: "email", label: "Email", type: "email", placeholder: "Digite seu e-mail" },
+            { field: "phone", label: "Telefone", type: "tel", placeholder: "Ex: 11987654321" },
+            { field: "password", label: "Senha", type: "password", placeholder: "Digite sua senha" },
+          ].map(({ field, label, type, placeholder }) => (
             <div key={field}>
-              <label htmlFor={field} className="block text-sm font-medium text-gray-700">
-                {field === "username" ? "Nome" : field === "email" ? "Email" : field === "phone" ? "Telefone" : "Senha"}
-              </label>
+              <label htmlFor={field} className="block text-sm font-medium text-gray-700">{label}</label>
               <input
                 id={field}
-                type={field === "password" ? "password" : field === "phone" ? "tel" : "text"}
-                placeholder={field === "username" ? "Digite seu nome" : field === "email" ? "Digite seu e-mail" : field === "phone" ? "Ex: 11987654321" : "Digite sua senha"}
+                type={type}
+                placeholder={placeholder}
                 {...formik.getFieldProps(field)}
-                className={`w-full px-4 py-2 border rounded-md focus:ring-2 text-gray-700 ${formik.touched[field as keyof typeof formik.touched] && formik.errors[field as keyof typeof formik.errors] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"}`}
+                className={`w-full px-4 py-2 border rounded-md focus:ring-2 text-gray-700 ${
+                  formik.touched[field as keyof typeof formik.touched] && formik.errors[field as keyof typeof formik.errors]
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-blue-500"
+                }`}
               />
-              {formik.touched[field as keyof typeof formik.touched] && formik.errors[field as keyof typeof formik.errors] && <p className="text-red-500 text-sm">{formik.errors[field as keyof typeof formik.errors]}</p>}
+              {formik.touched[field as keyof typeof formik.touched] && formik.errors[field as keyof typeof formik.errors] && (
+                <p className="text-red-500 text-sm">{formik.errors[field as keyof typeof formik.errors]}</p>
+              )}
             </div>
           ))}
           {error && <p className="text-red-600 text-sm text-center">{error}</p>}
