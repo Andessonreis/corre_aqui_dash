@@ -66,7 +66,7 @@ export default function Login() {
 
       if (!storeData) {
         // Se não existir registro na tabela stores, redireciona para completar o cadastro
-        router.push("/complete-profile");
+        router.push("/profile-setup");
       } else {
         // Se existir, o cadastro está completo, direciona para a dashboard
         router.push("/dashboard");

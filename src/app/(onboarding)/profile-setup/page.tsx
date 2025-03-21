@@ -1,390 +1,206 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useFormik } from "formik";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import * as Yup from "yup";
-import { supabase } from "@/lib/client";
-import { v4 as uuidv4 } from "uuid";
+import { CompanyForm } from "@/components/company/CompanyForm";
+import { AddressForm } from "@/components/company/AddressForm";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Store, MapPin, CheckCircle } from "lucide-react";
 
-// Dados iniciais e esquema de validação
-const initialValues = {
-  name: "", phone: "", email: "", cnpj: "", cpf: "", description: "",
-  street: "", number: "", neighborhood: "", city: "", state: "", zipCode: ""
-};
-
-const validationSchema = Yup.object({
-  name: Yup.string().required("Nome é obrigatório"),
-  cnpj: Yup.string().matches(/^\d{14}$/, "CNPJ inválido (deve ter 14 dígitos)").required("CNPJ é obrigatório"),
-  cpf: Yup.string().matches(/^\d{11}$/, "CPF inválido (deve ter 11 dígitos)").required("CPF é obrigatório"),
-  description: Yup.string().max(500, "Máximo de 500 caracteres"),
-  street: Yup.string().required("Rua é obrigatória"),
-  number: Yup.string().required("Número é obrigatório"),
-  neighborhood: Yup.string().required("Bairro é obrigatório"),
-  city: Yup.string().required("Cidade é obrigatória"),
-  state: Yup.string().required("Estado é obrigatório"),
-  zipCode: Yup.string().required("CEP é obrigatório"),
-});
-
-export default function ProfileSetup() {
+export default function ProfileSetupPage() {
   const router = useRouter();
-  const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
-  const [location, setLocation] = useState(null);
-  const [storeImageFile, setStoreImageFile] = useState(null);
-  const [bannerImageFile, setBannerImageFile] = useState(null);
-  const [storePreview, setStorePreview] = useState(null);
-  const [bannerPreview, setBannerPreview] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+  const [activeTab, setActiveTab] = useState<"store" | "location">("store");
+  const [companyData, setCompanyData] = useState<any>(null);
   
-  const formik = useFormik({
-    initialValues,
-    validationSchema,
-    onSubmit: async (values) => {
-      setIsSubmitting(true);
-      setError(null);
-      
-      try {
-        if (!user) throw new Error("Usuário não autenticado");
-        if (!location) throw new Error("Localização não definida");
-        if (!storeImageFile) throw new Error("Selecione a imagem da loja");
-        if (!selectedCategory) throw new Error("Selecione uma categoria");
-
-        // Criar/atualizar proprietário
-        const { data: ownerData, error: ownerError } = await supabase
-          .from("owners")
-          .upsert([{ user_id: user.id, cpf: values.cpf }])
-          .select()
-          .single();
-        
-        if (ownerError) throw new Error(ownerError.message);
-
-        // Upload de imagens
-        const storeImageUrl = await uploadImage(storeImageFile);
-        const bannerImageUrl = bannerImageFile ? await uploadImage(bannerImageFile) : null;
-
-        // Criar loja
-        const { error: storeError } = await supabase.from("stores").insert([{
-          name: values.name, cnpj: values.cnpj, 
-          latitude: location.latitude, longitude: location.longitude,
-          owner_id: ownerData.id, description: values.description,
-          category_id: selectedCategory, 
-          store_image_url: storeImageUrl, banner_image_url: bannerImageUrl
-        }]);
-        
-        if (storeError) throw new Error(storeError.message);
-
-        // Criar endereço
-        const { error: addressError } = await supabase.from("addresses").insert([{
-          street: values.street, number: values.number, 
-          neighborhood: values.neighborhood, city: values.city, 
-          state: values.state, zip_code: values.zipCode, store_id: ownerData.id
-        }]);
-        
-        if (addressError) throw new Error(addressError.message);
-
-        router.push("/dashboard");
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Erro desconhecido");
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-  });
-
-  // Fetch inicial de dados
-  useEffect(() => {
-    const fetchData = async () => {
-      // Verificar usuário autenticado
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) return router.push("/signin");
-      setUser(user);
-      
-      // Carregar perfil
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles").select("name, phone, email").eq("id", user.id).single();
-
-      if (!profileError && profile) {
-        formik.setValues({
-          ...initialValues,
-          name: profile.name || "",
-          phone: profile.phone || "",
-          email: profile.email || user.email || ""
-        });
-      }
-
-      // Carregar categorias
-      const { data, error } = await supabase.from("categories").select("id, name");
-      if (!error) setCategories(data || []);
-
-      // Obter localização
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => setLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          }),
-          (error) => setError("Erro ao obter localização: " + error.message)
-        );
-      }
-    };
-
-    fetchData();
-  }, [router]);
-
-  // Funções auxiliares
-  const uploadImage = async (file) => {
-    const { data, error } = await supabase.storage
-      .from("store-images").upload(`public/${uuidv4()}`, file);
-    if (error) throw new Error("Erro ao fazer upload da imagem: " + error.message);
-    return data?.path;
+  const handleCompanySubmit = async (values: any) => {
+    setCompanyData(values);
+    setActiveTab("location");
   };
-
-  const handleImageChange = (setter, previewSetter) => (e) => {
-    const file = e.target.files?.[0] || null;
-    setter(file);
-    if (file) previewSetter(URL.createObjectURL(file));
+  
+  const handleAddressSubmit = async (values: any) => {
+    if (!companyData) return;
+    console.log("Salvando empresa:", companyData);
+    console.log("Salvando endereço:", values);
+    router.push("/dashboard");
   };
-
-  const getFieldError = (fieldName) => 
-    formik.touched[fieldName] && formik.errors[fieldName] ? 
-      <p className="text-red-400 text-xs mt-1">{formik.errors[fieldName]}</p> : null;
-
-  // Verificar se o step atual pode avançar
-  const canAdvanceToNextStep = () => {
-    switch (currentStep) {
-      case 1:
-        return formik.values.name && formik.values.cnpj && formik.values.cpf && 
-               selectedCategory && !formik.errors.name && !formik.errors.cnpj && !formik.errors.cpf;
-      case 2:
-        return storeImageFile && formik.values.description;
-      case 3:
-        return formik.values.street && formik.values.number && formik.values.neighborhood && 
-               formik.values.city && formik.values.state && formik.values.zipCode && 
-               !formik.errors.street && !formik.errors.number && !formik.errors.neighborhood && 
-               !formik.errors.city && !formik.errors.state && !formik.errors.zipCode;
-      default:
-        return false;
-    }
-  };
-
-  // Componentes de UI para cada etapa
-  const renderStep = () => {
-    const steps = [
-      // Step 1: Informações Básicas
-      <div key="step1" className="space-y-4">
-        <h2 className="text-xl font-semibold text-white mb-6">Informações Básicas</h2>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Nome Fantasia</label>
-          <input type="text" {...formik.getFieldProps("name")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" />
-          {getFieldError("name")}
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">CNPJ</label>
-          <input type="text" {...formik.getFieldProps("cnpj")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" placeholder="Apenas números" />
-          {getFieldError("cnpj")}
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">CPF do Responsável</label>
-          <input type="text" {...formik.getFieldProps("cpf")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" placeholder="Apenas números" />
-          {getFieldError("cpf")}
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Categoria da Loja</label>
-          <select onChange={(e) => setSelectedCategory(Number(e.target.value))} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white">
-            <option value="">Selecione uma categoria</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>{category.name}</option>
-            ))}
-          </select>
-        </div>
-      </div>,
-      
-      // Step 2: Identidade Visual
-      <div key="step2" className="space-y-4">
-        <h2 className="text-xl font-semibold text-white mb-6">Identidade Visual</h2>
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-2">Descrição da Loja</label>
-          <textarea {...formik.getFieldProps("description")} rows={3} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white"></textarea>
-          <p className="text-gray-400 text-xs mt-1">{formik.values.description.length}/500 caracteres</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Imagem da loja e banner - implementação simplificada */}
-          <ImageUploader 
-            label="Logo da Loja" 
-            preview={storePreview} 
-            onChange={handleImageChange(setStoreImageFile, setStorePreview)}
-            onClear={() => {setStorePreview(null); setStoreImageFile(null);}}
-          />
-          <ImageUploader 
-            label="Banner da Loja (opcional)"
-            preview={bannerPreview} 
-            onChange={handleImageChange(setBannerImageFile, setBannerPreview)}
-            onClear={() => {setBannerPreview(null); setBannerImageFile(null);}}
-          />
-        </div>
-      </div>,
-      
-      // Step 3: Endereço
-      <div key="step3" className="space-y-4">
-        <h2 className="text-xl font-semibold text-white mb-6">Endereço da Loja</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Rua</label>
-            <input type="text" {...formik.getFieldProps("street")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" />
-            {getFieldError("street")}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Número</label>
-            <input type="text" {...formik.getFieldProps("number")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" />
-            {getFieldError("number")}
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Bairro</label>
-          <input type="text" {...formik.getFieldProps("neighborhood")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" />
-          {getFieldError("neighborhood")}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Cidade</label>
-            <input type="text" {...formik.getFieldProps("city")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" />
-            {getFieldError("city")}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
-            <input type="text" {...formik.getFieldProps("state")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" />
-            {getFieldError("state")}
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">CEP</label>
-          <input type="text" {...formik.getFieldProps("zipCode")} className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white" />
-          {getFieldError("zipCode")}
-        </div>
-      </div>,
-      
-      // Step 4: Confirmação
-      <div key="step4" className="space-y-4">
-        <h2 className="text-xl font-semibold text-white mb-6">Confirmação</h2>
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <h3 className="text-lg font-medium text-blue-400 mb-4">Informações da Loja</h3>
-          <p className="text-white">
-            <strong>Nome:</strong> {formik.values.name}<br />
-            <strong>CNPJ:</strong> {formik.values.cnpj}<br />
-            <strong>Categoria:</strong> {categories.find(c => c.id === selectedCategory)?.name || ''}
-          </p>
-        </div>
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <h3 className="text-lg font-medium text-blue-400 mb-4">Endereço</h3>
-          <p className="text-white">
-            {formik.values.street}, {formik.values.number}, {formik.values.neighborhood}<br />
-            {formik.values.city} - {formik.values.state}, CEP: {formik.values.zipCode}
-          </p>
-        </div>
-        {(storePreview || bannerPreview) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {storePreview && (
-              <div className="bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-blue-400 mb-4">Logo da Loja</h3>
-                <img src={storePreview} alt="Logo preview" className="h-32 object-contain mx-auto" />
-              </div>
-            )}
-            {bannerPreview && (
-              <div className="bg-gray-800 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-blue-400 mb-4">Banner da Loja</h3>
-                <img src={bannerPreview} alt="Banner preview" className="h-32 object-cover w-full" />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    ];
-
-    return steps[currentStep - 1];
-  };
-
-  // Componente para upload de imagem
-  const ImageUploader = ({ label, preview, onChange, onClear }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
-      <div className="relative border-2 border-dashed border-gray-600 rounded-lg p-4 bg-gray-800 h-40 flex flex-col items-center justify-center">
-        {preview ? (
-          <div className="relative w-full h-full">
-            <img src={preview} alt="Preview" className="w-full h-full object-contain" />
-            <button onClick={onClear} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6">&times;</button>
-          </div>
-        ) : (
-          <>
-            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <p className="text-gray-400 text-sm mt-2">Clique para selecionar</p>
-            <input type="file" onChange={onChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" />
-          </>
-        )}
-      </div>
-    </div>
-  );
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 px-4">
-      <div className="max-w-3xl mx-auto bg-gray-900 rounded-xl shadow-xl p-6 border border-gray-800">
-        <h1 className="text-2xl font-bold text-white mb-6 text-center">Cadastro da Loja</h1>
-        
-        {/* Progress bar */}
-        <div className="mb-8">
-          <div className="flex justify-between">
-            {["Informações", "Identidade", "Endereço", "Confirmação"].map((step, i) => (
-              <div key={i} className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  currentStep > i+1 ? "bg-blue-600" : currentStep === i+1 ? "bg-blue-500 ring-2 ring-blue-300" : "bg-gray-700"}`}>
-                  {currentStep > i+1 ? "✓" : i+1}
-                </div>
-                <span className={`text-xs mt-1 ${currentStep === i+1 ? "text-blue-400" : "text-gray-500"}`}>{step}</span>
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black p-0 m-0 overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+        <div className="absolute top-20 right-20 w-32 h-32 bg-red-500 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute bottom-20 left-40 w-64 h-64 bg-indigo-600 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-purple-600 rounded-full opacity-20 blur-3xl"></div>
+      </div>
+
+      {/* Main layout */}
+      <div className="relative w-full h-screen flex">
+        {/* Left sidebar/preview panel - Always visible */}
+        <motion.div 
+          className="hidden lg:block w-2/5 h-screen bg-black/30 backdrop-blur-sm p-10 overflow-hidden"
+          initial={{ x: -100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="h-full flex flex-col justify-between">
+            <div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mb-8"
+              >
+                <h1 className="text-4xl font-bold text-white mb-4">Crie sua presença digital</h1>
+                <p className="text-gray-300">Configure sua loja e comece a vender mais em minutos.</p>
+              </motion.div>
+              
+              <div className="space-y-6 mt-12">
+                <motion.div 
+                  className={`flex items-center space-x-4 p-4 rounded-xl ${activeTab === "store" ? "bg-red-500/20 border border-red-500/30" : "bg-gray-800/50"}`}
+                  whileHover={{ x: 5 }}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === "store" ? "bg-red-500" : "bg-gray-700"}`}>
+                    <Store className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium">Detalhes da Loja</h3>
+                    <p className="text-sm text-gray-400">Informações básicas do seu negócio</p>
+                  </div>
+                  {companyData && <CheckCircle className="w-5 h-5 text-green-500 ml-auto" />}
+                </motion.div>
+                
+                <motion.div 
+                  className={`flex items-center space-x-4 p-4 rounded-xl ${activeTab === "location" ? "bg-red-500/20 border border-red-500/30" : "bg-gray-800/50"}`}
+                  whileHover={{ x: 5 }}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === "location" ? "bg-red-500" : "bg-gray-700"}`}>
+                    <MapPin className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium">Localização</h3>
+                    <p className="text-sm text-gray-400">Endereço e informações de contato</p>
+                  </div>
+                </motion.div>
               </div>
-            ))}
-          </div>
-          <div className="relative mt-2">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gray-700"></div>
-            <div className="absolute top-0 left-0 h-1 bg-blue-500" style={{width: `${((currentStep-1)/3)*100}%`}}></div>
-          </div>
-        </div>
-        
-        <form onSubmit={formik.handleSubmit}>
-          {error && (
-            <div className="p-4 bg-red-900 text-red-200 rounded-lg mb-6">{error}</div>
-          )}
-          
-          {renderStep()}
-          
-          <div className="mt-8 flex justify-between">
-            {currentStep > 1 && (
-              <button type="button" onClick={() => setCurrentStep(currentStep - 1)}
-                className="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800">
-                Voltar
-              </button>
-            )}
+            </div>
             
-            {currentStep < 4 ? (
-              <button type="button" onClick={() => setCurrentStep(currentStep + 1)}
-                disabled={!canAdvanceToNextStep()}
-                className={`ml-auto px-6 py-2 rounded-lg ${
-                  canAdvanceToNextStep() ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`}>
-                Continuar
-              </button>
-            ) : (
-              <button type="submit" disabled={isSubmitting}
-                className="ml-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                {isSubmitting ? "Cadastrando..." : "Finalizar Cadastro"}
-              </button>
+            {/* Preview section */}
+            {companyData && (
+              <motion.div 
+                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-xl mt-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <div className="h-24 bg-gradient-to-r from-indigo-600 to-red-500 relative">
+                  {companyData.banner_image_url ? (
+                    <img src={companyData.banner_image_url} alt="Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-white/50 text-sm">Banner da loja</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 flex items-start space-x-3">
+                  <div className="w-16 h-16 bg-white rounded-xl overflow-hidden -mt-8 ring-4 ring-gray-900 shadow-lg">
+                    {companyData.profile_image_url ? (
+                      <img src={companyData.profile_image_url} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <span className="text-gray-500 text-xs">Logo</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="pt-2">
+                    <h3 className="text-white font-bold">{companyData.name || "Nome da Empresa"}</h3>
+                    <p className="text-sm text-gray-400">{companyData.description || "Descrição da empresa..."}</p>
+                  </div>
+                </div>
+              </motion.div>
             )}
           </div>
-        </form>
+        </motion.div>
+
+        {/* Right side - Form area */}
+        <motion.div 
+          className="w-full lg:w-3/5 h-screen bg-white/10 backdrop-blur-md flex items-center justify-center p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <motion.div
+            className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            {/* Form header */}
+            <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-red-500 p-6">
+              <motion.h2 
+                className="text-3xl font-bold text-white"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                {activeTab === "store" ? "Informações da Loja" : "Localização"}
+              </motion.h2>
+              <div className="w-full h-1 bg-white/20 rounded-full mt-4">
+                <motion.div 
+                  className="h-full bg-white rounded-full"
+                  initial={{ width: "0%" }}
+                  animate={{ width: activeTab === "store" ? "50%" : "100%" }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </div>
+
+            {/* Tabs navigation */}
+            <div className="bg-gray-50 px-6 pt-4 pb-4 flex space-x-2">
+              <button
+                onClick={() => setActiveTab("store")}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${
+                  activeTab === "store" 
+                    ? "bg-white shadow text-red-600" 
+                    : "bg-transparent text-gray-600 hover:bg-white/60"
+                }`}
+              >
+                <Store className="w-4 h-4 mr-2" />
+                Loja
+              </button>
+              
+              <button
+                onClick={() => companyData && setActiveTab("location")}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${
+                  activeTab === "location" 
+                    ? "bg-white shadow text-red-600" 
+                    : "bg-transparent text-gray-600 hover:bg-white/60"
+                } ${!companyData ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                Localização
+              </button>
+            </div>
+
+            {/* Form container */}
+            <div className="p-6">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {activeTab === "store" ? (
+                    <CompanyForm onSubmit={handleCompanySubmit} />
+                  ) : (
+                    <AddressForm onSubmit={handleAddressSubmit} />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
