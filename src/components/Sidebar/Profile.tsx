@@ -1,6 +1,6 @@
 // src/components/Sidebar/Profile.tsx
 import { LogOut } from "lucide-react";
-import { Button } from "../Button";
+import { Button } from "../ui/Button";
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
 

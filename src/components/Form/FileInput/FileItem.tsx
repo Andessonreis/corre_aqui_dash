@@ -1,4 +1,4 @@
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/Button";
 import { CheckCircle2, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import clsx from "clsx";

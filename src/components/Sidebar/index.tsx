@@ -6,7 +6,7 @@ import { Profile } from "./Profile";
 import { Navigation } from "./Navigation";
 import { NavItem } from "./Navigation/NavItem";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { Button } from "../Button";
+import { Button } from "../ui/Button";
 
 export function Sidebar() {
   return (
