@@ -7,61 +7,71 @@ import { Button } from "@/components/ui/Button";
 import { CategorySelect } from "./CategorySelect";
 import { ImageUpload } from "./ImageUpload";
 import { motion } from "framer-motion";
-import { ArrowRight, Image, Building, FileBadge, FileText } from "lucide-react";
-
+import { ArrowRight, Image, FileBadge, FileText } from "lucide-react";
 import { useState } from "react";
 
 interface CompanyFormValues {
-  name: string;
   cnpj: string;
   cpf: string;
   category_id: string;
   description: string;
-  profile_image_url: string;
+  store_image_url: string;
   banner_image_url: string;
 }
 
 export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues) => void }) {
   const [showImagePreview, setShowImagePreview] = useState<string | null>(null);
-  
+
   const formik = useFormik<CompanyFormValues>({
     initialValues: {
-      name: "",
       cnpj: "",
       cpf: "",
       category_id: "",
       description: "",
-      profile_image_url: "",
-      banner_image_url: ""
+      store_image_url: "",
+      banner_image_url: "",
     },
     validationSchema: Yup.object({
-      name: Yup.string().required("Nome é obrigatório"),
-      cnpj: Yup.string().length(14, "CNPJ inválido").required("CNPJ obrigatório"),
-      cpf: Yup.string().length(11, "CPF inválido").required("CPF obrigatório"),
+      cnpj: Yup.string()
+        .length(14, "CNPJ inválido")
+        .required("CNPJ obrigatório")
+        .matches(/^\d+$/, "CNPJ deve conter apenas números"),
+      cpf: Yup.string()
+        .length(11, "CPF inválido")
+        .required("CPF obrigatório")
+        .matches(/^\d+$/, "CPF deve conter apenas números"),
       category_id: Yup.string().required("Selecione uma categoria"),
       description: Yup.string().required("Descrição obrigatória"),
     }),
-    onSubmit,
+    onSubmit: (values) => {
+      // Remove máscaras do CNPJ e CPF antes de enviar
+      const formattedValues = {
+        ...values,
+        cnpj: values.cnpj.replace(/\D/g, ""),
+        cpf: values.cpf.replace(/\D/g, ""),
+      };
+      onSubmit(formattedValues);
+    },
   });
 
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { 
-        staggerChildren: 0.08
-      }
-    }
+      transition: {
+        staggerChildren: 0.08,
+      },
+    },
   };
-  
+
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.4 }
-    }
+      transition: { duration: 0.4 },
+    },
   };
 
   return (
@@ -72,27 +82,7 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
       animate="visible"
       className="space-y-6"
     >
-      <motion.div 
-        variants={itemVariants}
-        className="space-y-1"
-      >
-        <div className="flex items-center mb-2">
-          <Building className="w-4 h-4 mr-2 text-red-500" />
-          <h3 className="font-medium text-gray-700">Informações Básicas</h3>
-        </div>
-        <Input
-          label="Nome da Empresa"
-          {...formik.getFieldProps("name")}
-          placeholder="Digite o nome da empresa"
-          className="w-full bg-white border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-          error={formik.touched.name ? formik.errors.name: undefined}
-        />
-        {formik.touched.name && formik.errors.name && (
-          <p className="mt-1 text-sm text-red-500">{formik.errors.name}</p>
-        )}
-      </motion.div>
-
-      <motion.div 
+      <motion.div
         variants={itemVariants}
         className="space-y-1"
       >
@@ -104,23 +94,24 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
           <div>
             <Input
               label="CNPJ"
+              labelClassName="text-gray-800 font-medium"
               {...formik.getFieldProps("cnpj")}
               placeholder="00.000.000/0000-00"
               className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.cnpj ? formik.errors.cnpj: undefined}
+              error={formik.touched.cnpj ? formik.errors.cnpj : undefined}
             />
             {formik.touched.cnpj && formik.errors.cnpj && (
               <p className="mt-1 text-sm text-red-500">{formik.errors.cnpj}</p>
             )}
           </div>
-          
+
           <div>
             <Input
               label="CPF do Responsável"
               {...formik.getFieldProps("cpf")}
               placeholder="000.000.000-00"
               className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.cpf ? formik.errors.cpf: undefined}
+              error={formik.touched.cpf ? formik.errors.cpf : undefined}
             />
             {formik.touched.cpf && formik.errors.cpf && (
               <p className="mt-1 text-sm text-red-500">{formik.errors.cpf}</p>
@@ -129,7 +120,7 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
         </div>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         variants={itemVariants}
         className="space-y-1"
       >
@@ -141,19 +132,19 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
           value={formik.values.category_id}
           onChange={(value: string) => formik.setFieldValue("category_id", value)}
           className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-          error={formik.touched.category_id ? formik.errors.category_id: undefined}
+          error={formik.touched.category_id ? formik.errors.category_id : undefined}
         />
         {formik.touched.category_id && formik.errors.category_id && (
           <p className="mt-1 text-sm text-red-500">{formik.errors.category_id}</p>
         )}
-        
+
         <div className="mt-3">
           <Input
             label="Descrição"
             {...formik.getFieldProps("description")}
             placeholder="Descreva sua empresa em poucas palavras..."
             className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-            error={formik.touched.description ? formik.errors.description: undefined}
+            error={formik.touched.description ? formik.errors.description : undefined}
             textarea
             rows={3}
           />
@@ -174,19 +165,19 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
           </div>
           <p className="text-sm text-gray-500 mt-1">Adicione a logo e o banner da sua loja</p>
         </div>
-        
+
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Logo da Loja</p>
             <ImageUpload
               label="Selecionar logo"
-              onUpload={(url) => formik.setFieldValue("profile_image_url", url)}
-              previewUrl={formik.values.profile_image_url}
+              onUpload={(url) => formik.setFieldValue("store_image_url", url)}
+              previewUrl={formik.values.store_image_url}
               className="bg-gray-50 border border-gray-200 rounded-lg h-32 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
-              onPreview={() => setShowImagePreview(formik.values.profile_image_url)}
+              onPreview={() => setShowImagePreview(formik.values.store_image_url)}
             />
           </div>
-          
+
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Banner</p>
             <ImageUpload
@@ -204,7 +195,7 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
         variants={itemVariants}
         className="pt-4"
       >
-        <Button 
+        <Button
           type="submit"
           className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center"
         >
@@ -228,12 +219,12 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
             className="relative max-w-2xl max-h-[80vh] rounded-xl overflow-hidden bg-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <img 
-              src={showImagePreview} 
-              alt="Preview" 
+            <img
+              src={showImagePreview}
+              alt="Preview"
               className="w-full h-full object-contain"
             />
-            <button 
+            <button
               className="absolute top-2 right-2 bg-gray-900/60 text-white rounded-full p-2"
               onClick={() => setShowImagePreview(null)}
             >

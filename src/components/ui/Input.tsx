@@ -2,15 +2,17 @@ import React from 'react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  labelClassName?: string;
   error?: string;
   textarea?: boolean;
-  rows?: number; 
+  rows?: number;
   multiple?: boolean;
   checked?: boolean;
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
+  labelClassName,
   error,
   className,
   ...props
@@ -18,7 +20,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="space-y-1">
       {label && (
-        <label className="text-sm font-medium">
+        <label className={`text-sm font-medium ${labelClassName || 'text-gray-800'}`}>
           {label}
         </label>
       )}
@@ -30,6 +32,7 @@ export const Input: React.FC<InputProps> = ({
         `}
         {...props}
       />
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );
 };

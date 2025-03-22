@@ -14,7 +14,7 @@ interface AddressFormValues {
   neighborhood: string;
   city: string;
   state: string;
-  zipCode: string;
+  postal_code: string;
 }
 
 export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues) => void }) {
@@ -27,7 +27,7 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
       neighborhood: "",
       city: "",
       state: "",
-      zipCode: "",
+      postal_code: "",
     },
     validationSchema: Yup.object({
       street: Yup.string().required("Rua obrigatória"),
@@ -35,13 +35,13 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
       neighborhood: Yup.string().required("Bairro obrigatório"),
       city: Yup.string().required("Cidade obrigatória"),
       state: Yup.string().required("Estado obrigatório"),
-      zipCode: Yup.string().length(8, "CEP inválido").required("CEP obrigatório"),
+      postal_code: Yup.string().length(8, "CEP inválido").required("CEP obrigatório"),
     }),
     onSubmit,
   });
 
   const handleCepBlur = async () => {
-    const cep = formik.values.zipCode;
+    const cep = formik.values.postal_code;
     if (cep.length === 8) {
       setLoadingCep(true);
       try {
@@ -63,32 +63,32 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { 
-        staggerChildren: 0.08
-      }
-    }
+      transition: {
+        staggerChildren: 0.08,
+      },
+    },
   };
-  
+
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.4 }
-    }
+      transition: { duration: 0.4 },
+    },
   };
 
   return (
-    <motion.form 
-      onSubmit={formik.handleSubmit} 
+    <motion.form
+      onSubmit={formik.handleSubmit}
       variants={containerVariants}
       initial="hidden"
       animate="visible"
       className="space-y-6"
     >
-      <motion.div 
+      <motion.div
         variants={itemVariants}
         className="space-y-1"
       >
@@ -98,19 +98,19 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
         </div>
         <Input
           label="CEP"
-          {...formik.getFieldProps("zipCode")}
+          {...formik.getFieldProps("postal_code")}
           onBlur={handleCepBlur}
           disabled={loadingCep}
           placeholder="00000-000"
           className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-          error={formik.touched.zipCode ? formik.errors.zipCode : undefined}
+          error={formik.touched.postal_code ? formik.errors.postal_code : undefined}
         />
-        {formik.touched.zipCode && formik.errors.zipCode && (
-          <p className="mt-1 text-sm text-red-500">{formik.errors.zipCode}</p>
+        {formik.touched.postal_code && formik.errors.postal_code && (
+          <p className="mt-1 text-sm text-red-500">{formik.errors.postal_code}</p>
         )}
       </motion.div>
 
-      <motion.div 
+      <motion.div
         variants={itemVariants}
         className="space-y-1"
       >
@@ -132,14 +132,14 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
               <p className="mt-1 text-sm text-red-500">{formik.errors.street}</p>
             )}
           </div>
-          
+
           <div>
             <Input
               label="Número"
               {...formik.getFieldProps("number")}
               placeholder="Ex: 1000"
               className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.number ? formik.errors.number: undefined}
+              error={formik.touched.number ? formik.errors.number : undefined}
             />
             {formik.touched.number && formik.errors.number && (
               <p className="mt-1 text-sm text-red-500">{formik.errors.number}</p>
@@ -152,7 +152,7 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
           {...formik.getFieldProps("neighborhood")}
           placeholder="Ex: Centro"
           className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700 mt-4"
-          error={formik.touched.neighborhood ? formik.errors.neighborhood: undefined}
+          error={formik.touched.neighborhood ? formik.errors.neighborhood : undefined}
         />
         {formik.touched.neighborhood && formik.errors.neighborhood && (
           <p className="mt-1 text-sm text-red-500">{formik.errors.neighborhood}</p>
@@ -165,20 +165,20 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
               {...formik.getFieldProps("city")}
               placeholder="Ex: São Paulo"
               className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.city ? formik.errors.city: undefined}
+              error={formik.touched.city ? formik.errors.city : undefined}
             />
             {formik.touched.city && formik.errors.city && (
               <p className="mt-1 text-sm text-red-500">{formik.errors.city}</p>
             )}
           </div>
-          
+
           <div>
             <Input
               label="Estado"
               {...formik.getFieldProps("state")}
               placeholder="Ex: SP"
               className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.state ? formik.errors.state: undefined}
+              error={formik.touched.state ? formik.errors.state : undefined}
             />
             {formik.touched.state && formik.errors.state && (
               <p className="mt-1 text-sm text-red-500">{formik.errors.state}</p>
@@ -191,7 +191,7 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
         variants={itemVariants}
         className="pt-4"
       >
-        <Button 
+        <Button
           type="submit"
           className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center"
         >
