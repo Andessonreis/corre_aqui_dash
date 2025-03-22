@@ -84,7 +84,7 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
           label="Nome da Empresa"
           {...formik.getFieldProps("name")}
           placeholder="Digite o nome da empresa"
-          className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
+          className="w-full bg-white border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
           error={formik.touched.name ? formik.errors.name: undefined}
         />
         {formik.touched.name && formik.errors.name && (
