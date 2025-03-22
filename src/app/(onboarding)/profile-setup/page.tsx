@@ -150,6 +150,7 @@ export default function ProfileSetupPage() {
         const { error: addressError } = await supabase.from("addresses").insert([
           {
             store_id: store.id,
+            profile_id: profile.id,
             street: values.street,
             number: values.number,
             neighborhood: values.neighborhood,
