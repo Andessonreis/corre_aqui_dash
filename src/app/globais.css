@@ -21,6 +21,28 @@
   
 }}
 
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes wave {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hover-wave:hover {
+  background: linear-gradient(90deg, #4f46e5, #7c3aed, #9333ea);
+  background-size: 200% 200%;
+  animation: wave 2s linear infinite;
+}
+
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

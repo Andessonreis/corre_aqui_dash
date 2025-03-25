@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { FiEdit2, FiCamera, FiClock, FiMapPin, FiMail, FiPhone, FiInfo, FiShield, FiTrendingUp } from "react-icons/fi"
 import { supabase } from "@/lib/client";
+import { Skeleton } from "@/components/ui/Skeleton";
+
 
 interface StoreData {
   id: number
@@ -170,23 +172,21 @@ export function Profile() {
   }
 
   return (
-    <div className="max-w-8xl mx-auto p-6 space-y-6 bg-zinc-950">
+    <div className="max-w-8xl mx-auto p-6 space-y-6 ">
       {/* Animated Banner*/}
       <motion.div 
-        className="relative w-full h-56 rounded-lg overflow-hidden shadow-2xl border border-zinc-800"
-        initial={{ opacity: 0 }} 
+        className="relative w-full h-64 rounded-2xl overflow-hidden border border-cyan-500/20 bg-gradient-to-r from-cyan-900/10 to-indigo-900/20"
+        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        {/* Nordic pattern overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-red-900/90 to-red-950/70 z-10 mix-blend-multiply"></div>
-        <div className="absolute inset-0 z-20 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cGF0aCBkPSJNMzAgMzBMMCA2MEgzMFYzMHptMzAgMEgzMHYzMEg2MFYzMHpNMzAgMzBIMFYwaDMwVjMwem0wIDBoMzBWMEgzMHYzMHoiIG9wYWNpdHk9Ii4wNSIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==')]"></div>
-        
-        <img
-          src={storeData.banner_image_url || 'https://source.unsplash.com/1200x400/?viking,business,dark'}
-          alt="Banner"
-          className="w-full h-full object-cover"
-        />
+        transition={{ duration: 0.5 }}
+     >
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIuNjI2NiAxMi42MjY2QzE0LjU5ODIgMTAuNjU1MSAxNC41OTgyIDcuMzQ0ODggMTIuNjI2NiA1LjM3MzM2QzEwLjY1NTEgMy40MDE4NSA3LjM0NDg4IDMuNDAxODUgNS4zNzMzNiA1LjM3MzM2QzMuNDAxODUgNy4zNDQ4OCAzLjQwMTg1IDEwLjY1NTEgNS4zNzMzNiAxMi42MjY2QzcuMzQ0ODggMTQuNTk4MiAxMC42NTUxIDE0LjU5ODIgMTIuNjI2NiAxMi42MjY2WiIgc3Ryb2tlPSIjMDBGN0ZGIiBzdHJva2Utb3BhY2l0eT0iMC4xIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==')] opacity-5" />
+
+      <img
+        src={storeData.banner_image_url || 'https://source.unsplash.com/1200x400/?cyberpunk,night'}
+        alt="Banner"
+        className="w-full h-full object-cover opacity-90 mix-blend-soft-light"
+      />
         
         {/* Banner title and logo section */}
         <div className="absolute bottom-0 left-0 right-0 z-30 p-5 bg-gradient-to-t from-black/80 to-transparent">
@@ -227,12 +227,12 @@ export function Profile() {
         <div className="lg:col-span-2 space-y-6">
           {/* Description Card */}
           <motion.div
-            className="bg-zinc-900 rounded-lg border border-zinc-800 shadow-lg overflow-hidden"
+            className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className="border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
+            <div className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm  border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
               <div className="flex items-center">
                 <FiInfo className="text-red-500 mr-2" size={18} />
                 <h2 className="text-lg font-semibold text-white">Descrição da Loja</h2>
@@ -250,12 +250,11 @@ export function Profile() {
           
           {/* Address Card */}
           <motion.div
-            className="bg-zinc-900 rounded-lg border border-zinc-800 shadow-lg overflow-hidden"
-            initial={{ opacity: 0, y: 20 }}
+          className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm"            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <div className="border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
+            <div className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
               <div className="flex items-center">
                 <FiMapPin className="text-red-500 mr-2" size={18} />
                 <h2 className="text-lg font-semibold text-white">Endereço</h2>
@@ -279,7 +278,7 @@ export function Profile() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-zinc-800/30 rounded-lg p-5 text-center border border-dashed border-zinc-700">
+                <div className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm  p-5 text-center border border-dashed border-zinc-700">
                   <p className="text-zinc-400">Nenhum endereço cadastrado</p>
                   <button className="mt-3 text-red-400 hover:text-red-300 transition text-sm inline-flex items-center gap-1 bg-zinc-800 px-4 py-2 rounded-full">
                     <FiMapPin size={14} />
@@ -292,12 +291,12 @@ export function Profile() {
           
           {/* Hours Card */}
           <motion.div
-            className="bg-zinc-900 rounded-lg border border-zinc-800 shadow-lg overflow-hidden"
+            className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm  border border-zinc-800 shadow-lg overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <div className="border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
+            <div className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
               <div className="flex items-center">
                 <FiClock className="text-red-500 mr-2" size={18} />
                 <h2 className="text-lg font-semibold text-white">Horário de Funcionamento</h2>
@@ -329,12 +328,12 @@ export function Profile() {
         <div className="space-y-6">
           {/* Contact Card */}
           <motion.div
-            className="bg-zinc-900 rounded-lg border border-zinc-800 shadow-lg overflow-hidden"
+            className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm  border border-zinc-800 shadow-lg overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <div className="border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
+            <div className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm  border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
               <div className="flex items-center">
                 <FiMail className="text-red-500 mr-2" size={18} />
                 <h2 className="text-lg font-semibold text-white">Contato</h2>
@@ -365,45 +364,10 @@ export function Profile() {
               </div>
             </div>
           </motion.div>
-          
-          {/* Stats Card */}
-          <motion.div
-            className="bg-zinc-900 rounded-lg border border-zinc-800 shadow-lg overflow-hidden"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <div className="border-b border-zinc-800 p-4 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
-              <div className="flex items-center">
-                <FiTrendingUp className="text-red-500 mr-2" size={18} />
-                <h2 className="text-lg font-semibold text-white">Estatísticas</h2>
-              </div>
-            </div>
-            <div className="p-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-zinc-800/50 rounded-lg p-4 text-center border border-zinc-700/50">
-                  <p className="text-3xl font-bold text-white">42</p>
-                  <p className="text-zinc-400 text-sm mt-1">Visitantes</p>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-4 text-center border border-zinc-700/50">
-                  <p className="text-3xl font-bold text-white">8</p>
-                  <p className="text-zinc-400 text-sm mt-1">Pedidos</p>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-4 text-center border border-zinc-700/50">
-                  <p className="text-3xl font-bold text-red-400">15%</p>
-                  <p className="text-zinc-400 text-sm mt-1">Conversão</p>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-4 text-center border border-zinc-700/50">
-                  <p className="text-3xl font-bold text-white">4.8</p>
-                  <p className="text-zinc-400 text-sm mt-1">Avaliação</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-          
+
           {/* Actions Quick Buttons */}
           <motion.div
-            className="bg-gradient-to-br from-red-900/30 to-red-950/20 rounded-lg border border-red-900/30 shadow-lg p-4"
+            className="bg-[#0d1425] rounded-2xl border border-cyan-500/10 backdrop-blur-sm  bg-gradient-to-br from-red-900/30 to-red-950/20 rounded-lg border border-red-900/30 shadow-lg p-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.7 }}
