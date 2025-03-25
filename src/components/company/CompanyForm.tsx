@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { CategorySelect } from "./CategorySelect";
-import { ImageUpload } from "./ImageUpload";
+import { ImageUpload } from "../Form/ImageUpload";
 import { motion } from "framer-motion";
 import { ArrowRight, Image, FileBadge, FileText } from "lucide-react";
 import { useState } from "react";

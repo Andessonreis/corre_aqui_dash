@@ -20,57 +20,30 @@ export default function Login() {
     onSubmit: async ({ email, password }) => {
       setError(null);
       
-      // 1. Realiza o login com email e senha
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) {
-        setError(signInError.message);
-        return;
-      }
-      
-      // 2. Obtém o usuário autenticado
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setError("Usuário não autenticado.");
-        return;
-      }
+      // 1. Login otimizado com obtenção direta do usuário
+      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
 
-      // 3. Verifica o registro do proprietário (owners) associado ao usuário
-      const { data: ownerData, error: ownerError } = await supabase
+      if (signInError) return setError(signInError.message);
+      if (!user) return setError("Autenticação falhou");
+
+      // 2. Consulta combinada usando JOIN para verificar owner e store
+      const { data: ownerData, error: queryError } = await supabase
         .from("owners")
-        .select("id")
+        .select(`
+          id,
+          stores!inner(id)
+        `)
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (ownerError) {
-        setError(ownerError.message);
-        return;
-      }
-      
-      if (!ownerData) {
-        // Se o proprietário não existir, o cadastro complementar não foi iniciado
-        router.push("/profile-setup");
-        return;
-      }
+      // 3. Controle de erros unificado
+      if (queryError) return setError(queryError.message);
 
-      // 4. Verifica se já existe um registro na tabela stores com o owner_id
-      const { data: storeData, error: storeError } = await supabase
-        .from("stores")
-        .select("id")
-        .eq("owner_id", ownerData.id)
-        .maybeSingle();
-
-      if (storeError) {
-        setError(storeError.message);
-        return;
-      }
-
-      if (!storeData) {
-        // Se não existir registro na tabela stores, redireciona para completar o cadastro
-        router.push("/profile-setup");
-      } else {
-        // Se existir, o cadastro está completo, direciona para a dashboard
-        router.push("/dashboard");
-      }
+      // 4. Redirecionamento inteligente baseado na presença de dados
+      router.push(ownerData?.stores ? "/dashboard" : "/profile-setup");
     },
   });
 
