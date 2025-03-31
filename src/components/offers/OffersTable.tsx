@@ -36,14 +36,14 @@ export function OffersTable({
     let filtered = offers.filter(o =>
       (!filters.search || o.name.toLowerCase().includes(filters.search.toLowerCase())) &&
       (filters.status === "all" || o.status === filters.status) &&
-      (filters.category === "all" || o.categoryName === filters.category)
+      (filters.category === "all" || o.category_name === filters.category)
     )
 
     if (filters.sortBy.includes("name")) {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name))
       if (filters.sortBy === "name-desc") filtered.reverse()
     } else if (filters.sortBy.includes("price")) {
-      filtered = filtered.sort((a, b) => a.offerPrice - b.offerPrice)
+      filtered = filtered.sort((a, b) => a.offer_price - b.offer_price)
       if (filters.sortBy === "price-desc") filtered.reverse()
     }
 

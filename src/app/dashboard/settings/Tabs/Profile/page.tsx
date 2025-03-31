@@ -44,26 +44,46 @@ export function Profile() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
-        if (authError || !user) {
-          throw new Error(authError?.message || "Usuário não autenticado");
-        }
   
-        // 1. Buscar perfil do usuário
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData?.user) throw new Error(authError?.message || "Usuário não autenticado");
+  
+        const userId = authData.user.id;
+  
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('*')
-          .eq('id', user.id)
+          .select('name, email, phone, role')
+          .eq('id', userId)
           .single();
   
-        if (profileError || !profile) {
-          throw new Error(profileError?.message || "Perfil não encontrado");
-        }
+        if (profileError || !profile) throw new Error(profileError?.message || "Perfil não encontrado");
+        if (profile.role !== 'company') throw new Error("Acesso permitido apenas para contas empresariais");
   
-        if (profile.role !== 'company') {
-          throw new Error("Acesso permitido apenas para contas empresariais");
-        }
+        const { data: owner, error: ownerError } = await supabase
+          .from('owners')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+  
+        if (ownerError || !owner) throw new Error(ownerError?.message || "Proprietário não registrado");
+  
+        const { data: store, error: storeError } = await supabase
+          .from('stores')
+          .select(`
+            id, name, description, category_id, image_url, banner_image_url,
+            addresses!addresses_store_id_fkey (
+              street, number, neighborhood, city, state, postal_code
+            ),
+            categories!stores_category_id_fkey (
+              name
+            )
+          `)
+          .eq('owner_id', owner.id)
+          .maybeSingle();
+        
+  
+        if (storeError) throw new Error(storeError.message);
+        if (!store) throw new Error("Nenhuma loja cadastrada para este proprietário");
   
         setUserProfile({
           name: profile.name,
@@ -71,42 +91,12 @@ export function Profile() {
           phone: profile.phone
         });
   
-        // 2. Buscar dados do proprietário
-        const { data: owner, error: ownerError } = await supabase
-          .from('owners')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
+        setStoreData({
+          ...store,
+          categories: store.categories ? store.categories[0] : { name: "Categoria não definida" }
+        });
   
-        if (ownerError || !owner) {
-          throw new Error(ownerError?.message || "Proprietário não registrado");
-        }
-  
-        // 3. Buscar dados da loja
-        const { data: store, error: storeError } = await supabase
-          .from('stores')
-          .select(`
-            *,
-            addresses!addresses_store_id_fkey (  
-              street, number, neighborhood, city, state, postal_code
-            ),
-            categories!stores_category_id_fkey(name)
-          `)
-          .eq('owner_id', owner.id)
-          .single();
-  
-        if (storeError) {
-          console.error('Erro na query da loja:', storeError);
-          throw new Error(storeError.message);
-        }
-  
-        if (!store) {
-          throw new Error("Nenhuma loja cadastrada para este proprietário");
-        }
-  
-        setStoreData(store);
         setLoading(false);
-  
       } catch (err) {
         console.error('Erro no fetchData:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
@@ -116,7 +106,7 @@ export function Profile() {
   
     fetchData();
   }, []);
-
+  
   if (loading) {
     return (
       <div className="max-w-8xl mx-auto p-6 space-y-6 flex justify-center items-center h-screen bg-zinc-900">
@@ -128,31 +118,7 @@ export function Profile() {
           <p className="mt-6 text-red-400 font-viking tracking-wider text-lg">CARREGANDO</p>
         </div>
       </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-8xl mx-auto p-6 space-y-6">
-        <div className="bg-black/80 border-l-4 border-red-700 rounded shadow-red-900/20 shadow-lg p-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-base text-red-500 font-semibold tracking-wide">
-                ERRO
-              </p>
-              <p className="mt-1 text-sm text-gray-300">
-                {error}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    );
   }
 
   if (!storeData) {
