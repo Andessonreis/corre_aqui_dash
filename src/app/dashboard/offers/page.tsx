@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState, useEffect, useCallback } from "react";
 import { OffersTable } from "@/components/offers/OffersTable";
 import { OfferForm } from "@/components/offers/OfferForm";
@@ -28,9 +29,7 @@ const defaultSubmitOffer = async (data: Partial<Offer>): Promise<void> => {
 };
 
 export default function OffersPageClient({
-  userId,
   submitOffer = defaultSubmitOffer,
-  stores = [],
   categories = [],
 }: OffersPageClientProps) {
   const { isFormOpen, editingOffer, openCreateForm, openEditForm, closeForm } = useOfferForm();
@@ -38,7 +37,6 @@ export default function OffersPageClient({
   const [storeId, setStoreId] = useState<string>("");
   const [zoneId, setZoneId] = useState<string>("");
   const [allCategories, setAllCategories] = useState(categories);
-
 
   const { offers, loading, error, refetch } = useOffers(storeId);
 
@@ -94,8 +92,14 @@ export default function OffersPageClient({
     fetchData();
   }, [categories]);
 
-  const handleFilterChange = (newFilters: typeof filters) => setFilters(newFilters);
 
+  const handleFilterChange = (newFilters: Partial<{ search: string; status: string; category: string; sortBy: string }>) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      ...newFilters,
+    }));
+  };
+  
   const handleSubmitOffer = useCallback(
     async (data: Partial<Offer>) => {
       if (!storeId) {
@@ -128,12 +132,13 @@ export default function OffersPageClient({
       />
 
       <OffersTable
-        offers={offers} 
+        offers={offers}
         loading={loading}
         error={error}
         filters={filters}
         onCreateOffer={openCreateForm}
         onEditOffer={openEditForm}
+        onUpdateFilters={handleFilterChange} 
       />
 
       {allCategories.length === 0 && (
