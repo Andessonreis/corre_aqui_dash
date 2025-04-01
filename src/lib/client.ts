@@ -21,7 +21,6 @@ class SupabaseService {
     if (!this.instance) {
       const { SUPABASE_URL, SUPABASE_ANON_KEY } = this.validateEnv();
       
-      // Opções aprimoradas para persistência de sessão
       const supabaseOptions = {
         auth: {
           persistSession: true,
@@ -31,7 +30,6 @@ class SupabaseService {
           storage: {
             getItem: (key: string) => {
               if (typeof window !== 'undefined') {
-                // No navegador
                 const value = localStorage.getItem(key);
                 try {
                   return value ? JSON.parse(value) : null;
@@ -45,14 +43,12 @@ class SupabaseService {
               if (typeof window !== 'undefined') {
                 const stringValue = typeof value === 'object' ? JSON.stringify(value) : value;
                 localStorage.setItem(key, stringValue);
-                // Definir cookie com expiração longa (90 dias)
                 document.cookie = `${key}=${encodeURIComponent(stringValue)};path=/;max-age=7776000;SameSite=Lax`;
               }
             },
             removeItem: (key: string) => {
               if (typeof window !== 'undefined') {
                 localStorage.removeItem(key);
-                // Remover cookie
                 document.cookie = `${key}=;path=/;max-age=0;SameSite=Lax`;
               }
             }
@@ -65,11 +61,6 @@ class SupabaseService {
       // Monitor de eventos de autenticação para debug e recuperação de sessão
       this.instance.auth.onAuthStateChange((event, session) => {
         console.log('[Supabase] Auth event:', event, 'Session:', !!session);
-        
-        // Restaurar sessão em caso de mudança de aba ou reinicialização
-        if (event === 'SIGNED_IN' && session) {
-          this.instance.auth.setSession(session);
-        }
       });
       
       // Tentativa de recuperar sessão ao inicializar
@@ -82,11 +73,10 @@ class SupabaseService {
   private static async tryRecoverSession() {
     if (typeof window !== 'undefined') {
       try {
-        // Verificar se já existe uma sessão ativa
+        
         const { data: { session } } = await this.instance.auth.getSession();
         if (session) return;
         
-        // Tentar recuperar do localStorage
         const storedSession = localStorage.getItem('supabase_auth_token');
         if (storedSession) {
           try {
