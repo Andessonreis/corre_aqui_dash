@@ -14,6 +14,11 @@ export default function ProfileSetupPage() {
   const [companyData, setCompanyData] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
+  const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Busca o usuário e o perfil ao carregar a página
   useEffect(() => {
@@ -173,6 +178,36 @@ export default function ProfileSetupPage() {
     }
   };
 
+  const handleImageUpload = async (file: File, type: 'profile' | 'banner') => {
+    setUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Math.random()}.${fileExt}`
+      
+      // Seleciona o bucket correto
+      const bucketName = type === 'profile' ? 'profile-pics' : 'banners'
+  
+      const { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(fileName, file)
+  
+      if (uploadError) throw uploadError
+  
+      const { data: urlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName)
+  
+      return urlData.publicUrl
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      setError('Falha ao fazer upload da imagem')
+      return null
+    } finally {
+      setUploading(false)
+    }
+  }
+
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black p-0 m-0 overflow-hidden">
       {/* Background elements */}
@@ -241,28 +276,46 @@ export default function ProfileSetupPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               >
+                {/* fazendo upload de bunner */}
                 <div className="h-24 bg-gradient-to-r from-indigo-600 to-red-500 relative">
-                  {companyData.banner_image_url ? (
-                    <img src={companyData.banner_image_url} alt="Banner" className="w-full h-full object-cover" />
+                  <input 
+                    type="file" 
+                    onChange={async (e) => {
+                      if (e.target.files?.[0]) {
+                        const url = await handleImageUpload(e.target.files[0], 'banner')
+                        if (url) setBannerImageUrl(url)
+                      }
+                    }}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  {bannerImageUrl ? (
+                    <img src={bannerImageUrl} alt="Banner" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-white/50 text-sm">Banner da loja</span>
+                      <span className="text-white/50 text-sm">Clique para adicionar banner</span>
                     </div>
                   )}
                 </div>
+                {/* Fazendo o upload de imagem de logo */}
                 <div className="p-4 flex items-start space-x-3">
                   <div className="w-16 h-16 bg-white rounded-xl overflow-hidden -mt-8 ring-4 ring-gray-900 shadow-lg">
-                    {companyData.profile_image_url ? (
-                      <img src={companyData.profile_image_url} alt="Logo" className="w-full h-full object-cover" />
+                    <input 
+                      type="file" 
+                      onChange={async (e) => {
+                        if (e.target.files?.[0]) {
+                          const url = await handleImageUpload(e.target.files[0], 'profile')
+                          if (url) setProfileImageUrl(url)
+                        }
+                      }}
+                      className="absolute w-16 h-16 opacity-0 cursor-pointer"
+                    />
+                    {profileImageUrl ? (
+                      <img src={profileImageUrl} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <span className="text-gray-500 text-xs">Logo</span>
+                        <span className="text-gray-500 text-xs">Clique para adicionar logo</span>
                       </div>
                     )}
-                  </div>
-                  <div className="pt-2">
-                    <h3 className="text-white font-bold">{companyData.name || "Nome da Empresa"}</h3>
-                    <p className="text-sm text-gray-400">{companyData.description || "Descrição da empresa..."}</p>
                   </div>
                 </div>
               </motion.div>
