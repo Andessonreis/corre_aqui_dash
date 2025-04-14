@@ -1,6 +1,5 @@
-"use client";
-
 import { useState, useCallback } from "react";
+import { supabase } from "@/lib/client";
 
 export interface ImageUploadProps {
   label: string;
@@ -8,6 +7,7 @@ export interface ImageUploadProps {
   previewUrl?: string;
   onPreview?: () => void;
   className?: string;
+  type?: "logo" | "banner"; 
 }
 
 export function ImageUpload({
@@ -16,6 +16,7 @@ export function ImageUpload({
   previewUrl,
   onPreview,
   className,
+  type = "logo",
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
 
@@ -23,18 +24,43 @@ export function ImageUpload({
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       try {
         if (!e.target.files?.[0]) return;
-        
+
         setUploading(true);
         const file = e.target.files[0];
-        const url = URL.createObjectURL(file);
-        onUpload(url);
+        const fileExt = file.name.split(".").pop();
+        const filePath = `${Date.now()}.${fileExt}`;
+        const bucket = type === "banner" ? "banners" : "profile-pics";
+
+        const { error } = await supabase.storage
+          .from(bucket)
+          .upload(filePath, file);
+
+        if (error) {
+          console.error("Erro ao fazer upload:", error);
+          return;
+        }
+
+        const { data } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(filePath);
+
+        const publicUrl = data?.publicUrl || data?.publicUrl;
+
+        if (!publicUrl) {
+          console.error("URL pública não encontrada");
+          return;
+        }
+
+        onUpload(publicUrl);
+
+
       } catch (error) {
-        console.error("Upload error:", error);
+        console.error("Erro no upload:", error);
       } finally {
         setUploading(false);
       }
     },
-    [onUpload]
+    [onUpload, supabase, type]
   );
 
   return (

@@ -10,16 +10,26 @@ import { motion } from "framer-motion";
 import { ArrowRight, Image, FileBadge, FileText } from "lucide-react";
 import { useState } from "react";
 
+interface CompanyFormProps {
+  onSubmit: (values: CompanyFormValues) => void;
+  onLogoUpload: (url: string) => void;
+  onBannerUpload: (url: string) => void;
+}
+
 interface CompanyFormValues {
   cnpj: string;
   cpf: string;
   category_id: string;
   description: string;
-  store_image_url: string;
-  banner_image_url: string;
+  image_url: string;
+  banner_url: string;
 }
 
-export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues) => void }) {
+export function CompanyForm({ 
+  onSubmit,
+  onLogoUpload,
+  onBannerUpload
+}: CompanyFormProps) {
   const [showImagePreview, setShowImagePreview] = useState<string | null>(null);
 
   const formik = useFormik<CompanyFormValues>({
@@ -28,8 +38,8 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
       cpf: "",
       category_id: "",
       description: "",
-      store_image_url: "",
-      banner_image_url: "",
+      image_url: "",
+      banner_url: "",
     },
     validationSchema: Yup.object({
       cnpj: Yup.string()
@@ -41,10 +51,13 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
         .required("CPF obrigatório")
         .matches(/^\d+$/, "CPF deve conter apenas números"),
       category_id: Yup.string().required("Selecione uma categoria"),
-      description: Yup.string().required("Descrição obrigatória"),
+      description: Yup.string()
+        .required("Descrição obrigatória")
+        .min(20, "A descrição deve ter pelo menos 20 caracteres"),
+      image_url: Yup.string().required("Logo da loja é obrigatória"),
+      banner_url: Yup.string().required("Banner da loja é obrigatório"),
     }),
     onSubmit: (values) => {
-      // Remove máscaras do CNPJ e CPF antes de enviar
       const formattedValues = {
         ...values,
         cnpj: values.cnpj.replace(/\D/g, ""),
@@ -82,10 +95,7 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
       animate="visible"
       className="space-y-6"
     >
-      <motion.div
-        variants={itemVariants}
-        className="space-y-1"
-      >
+      <motion.div variants={itemVariants} className="space-y-1">
         <div className="flex items-center mb-2">
           <FileBadge className="w-4 h-4 mr-2 text-red-500" />
           <h3 className="font-medium text-gray-700">Documentação</h3>
@@ -120,10 +130,7 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
         </div>
       </motion.div>
 
-      <motion.div
-        variants={itemVariants}
-        className="space-y-1"
-      >
+      <motion.div variants={itemVariants} className="space-y-1">
         <div className="flex items-center mb-2">
           <FileText className="w-4 h-4 mr-2 text-red-500" />
           <h3 className="font-medium text-gray-700">Sobre seu Negócio</h3>
@@ -154,10 +161,7 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
         </div>
       </motion.div>
 
-      <motion.div
-        variants={itemVariants}
-        className="rounded-xl border border-gray-200 overflow-hidden mt-6"
-      >
+      <motion.div variants={itemVariants} className="rounded-xl border border-gray-200 overflow-hidden mt-6">
         <div className="bg-gray-50 p-4 border-b border-gray-200">
           <div className="flex items-center">
             <Image className="w-4 h-4 mr-2 text-red-500" />
@@ -171,30 +175,34 @@ export function CompanyForm({ onSubmit }: { onSubmit: (values: CompanyFormValues
             <p className="text-sm font-medium text-gray-700 mb-2">Logo da Loja</p>
             <ImageUpload
               label="Selecionar logo"
-              onUpload={(url) => formik.setFieldValue("store_image_url", url)}
-              previewUrl={formik.values.store_image_url}
-              className="bg-gray-50 border border-gray-200 rounded-lg h-32 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
-              onPreview={() => setShowImagePreview(formik.values.store_image_url)}
+              onUpload={(url) => {
+                formik.setFieldValue("image_url", url);
+                onLogoUpload(url);
+              }}
+              previewUrl={formik.values.image_url}
+              className="w-full"
+              type="logo"
+              onPreview={() => setShowImagePreview(formik.values.image_url)}
             />
           </div>
-
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Banner</p>
             <ImageUpload
               label="Selecionar banner"
-              onUpload={(url) => formik.setFieldValue("banner_image_url", url)}
-              previewUrl={formik.values.banner_image_url}
-              className="bg-gray-50 border border-gray-200 rounded-lg h-32 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
-              onPreview={() => setShowImagePreview(formik.values.banner_image_url)}
+              onUpload={(url) => {
+                formik.setFieldValue("banner_url", url);
+                onBannerUpload(url);
+              }}
+              previewUrl={formik.values.banner_url}
+              className="w-full"
+              type="banner"
+              onPreview={() => setShowImagePreview(formik.values.banner_url)}
             />
           </div>
         </div>
       </motion.div>
 
-      <motion.div
-        variants={itemVariants}
-        className="pt-4"
-      >
+      <motion.div variants={itemVariants} className="pt-4">
         <Button
           type="submit"
           className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center"

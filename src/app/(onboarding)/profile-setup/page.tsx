@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { AddressForm } from "@/components/company/AddressForm";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Store, MapPin, CheckCircle } from "lucide-react";
+import { Store, MapPin, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/client";
 
 export default function ProfileSetupPage() {
@@ -16,9 +16,6 @@ export default function ProfileSetupPage() {
   const [profile, setProfile] = useState<any>(null);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
   const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   // Busca o usuário e o perfil ao carregar a página
   useEffect(() => {
@@ -53,30 +50,35 @@ export default function ProfileSetupPage() {
   // Função para lidar com o envio dos dados da loja
   const handleCompanySubmit = async (values: any) => {
     if (!user || !profile) return;
-
-    // Verifica se o CNPJ já existe
+  
+    const finalProfileUrl = values.store_image_url || profileImageUrl;
+    const finalBannerUrl = values.banner_image_url || bannerImageUrl;
+  
+    if (!finalProfileUrl || !finalBannerUrl) {
+      alert("Por favor, faça upload da logo e do banner antes de prosseguir.");
+      return;
+    }
+  
+    // Restante da lógica de verificação de CNPJ...
     const { data: existingStore, error: cnpjError } = await supabase
       .from("stores")
       .select("id")
       .eq("cnpj", values.cnpj)
       .maybeSingle();
-
+  
     if (existingStore) {
       alert("Já existe uma loja com este CNPJ.");
       return;
     }
-
-    // Preenche o nome fantasia automaticamente com o nome do perfil
+  
     values.name = profile.name;
-
-    // Define URLs de imagem padrão caso o usuário não tenha enviado
-    values.store_image_url = values.image_url || "https://example.com/default-image.jpg";
-    values.banner_image_url = values.banner_url || "https://example.com/default-banner.jpg";
-
+    values.image_url = finalProfileUrl; 
+    values.banner_url = finalBannerUrl;
+  
     setCompanyData(values);
     setActiveTab("location");
   };
-
+  
   // Função para obter latitude e longitude a partir do endereço
   const getLatLongFromAddress = async (values: any) => {
     try {
@@ -178,36 +180,6 @@ export default function ProfileSetupPage() {
     }
   };
 
-  const handleImageUpload = async (file: File, type: 'profile' | 'banner') => {
-    setUploading(true)
-    try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Math.random()}.${fileExt}`
-      
-      // Seleciona o bucket correto
-      const bucketName = type === 'profile' ? 'profile-pics' : 'banners'
-  
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(fileName, file)
-  
-      if (uploadError) throw uploadError
-  
-      const { data: urlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(fileName)
-  
-      return urlData.publicUrl
-    } catch (error) {
-      console.error('Error uploading image:', error)
-      setError('Falha ao fazer upload da imagem')
-      return null
-    } finally {
-      setUploading(false)
-    }
-  }
-
-
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black p-0 m-0 overflow-hidden">
       {/* Background elements */}
@@ -268,7 +240,7 @@ export default function ProfileSetupPage() {
               </div>
             </div>
 
-            {/* Preview section */}
+            {/* Preview section atualizada */}
             {companyData && (
               <motion.div
                 className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-xl mt-8"
@@ -276,46 +248,31 @@ export default function ProfileSetupPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               >
-                {/* fazendo upload de bunner */}
+                {/* Banner preview */}
                 <div className="h-24 bg-gradient-to-r from-indigo-600 to-red-500 relative">
-                  <input 
-                    type="file" 
-                    onChange={async (e) => {
-                      if (e.target.files?.[0]) {
-                        const url = await handleImageUpload(e.target.files[0], 'banner')
-                        if (url) setBannerImageUrl(url)
-                      }
-                    }}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                  />
                   {bannerImageUrl ? (
                     <img src={bannerImageUrl} alt="Banner" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-white/50 text-sm">Clique para adicionar banner</span>
+                      <span className="text-white/50 text-sm">Pré-visualização do banner</span>
                     </div>
                   )}
                 </div>
-                {/* Fazendo o upload de imagem de logo */}
+                
+                {/* Logo preview */}
                 <div className="p-4 flex items-start space-x-3">
                   <div className="w-16 h-16 bg-white rounded-xl overflow-hidden -mt-8 ring-4 ring-gray-900 shadow-lg">
-                    <input 
-                      type="file" 
-                      onChange={async (e) => {
-                        if (e.target.files?.[0]) {
-                          const url = await handleImageUpload(e.target.files[0], 'profile')
-                          if (url) setProfileImageUrl(url)
-                        }
-                      }}
-                      className="absolute w-16 h-16 opacity-0 cursor-pointer"
-                    />
                     {profileImageUrl ? (
                       <img src={profileImageUrl} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <span className="text-gray-500 text-xs">Clique para adicionar logo</span>
+                        <span className="text-gray-500 text-xs">Pré-visualização da logo</span>
                       </div>
                     )}
+                  </div>
+                  <div className="pt-2">
+                    <h3 className="text-white font-medium">{companyData.name}</h3>
+                    <p className="text-sm text-gray-400 mt-1">{companyData.description}</p>
                   </div>
                 </div>
               </motion.div>
@@ -394,7 +351,11 @@ export default function ProfileSetupPage() {
                   transition={{ duration: 0.3 }}
                 >
                   {activeTab === "store" ? (
-                    <CompanyForm onSubmit={handleCompanySubmit} />
+                    <CompanyForm 
+                      onSubmit={handleCompanySubmit}
+                      onLogoUpload={(url) => setProfileImageUrl(url)}
+                      onBannerUpload={(url) => setBannerImageUrl(url)}
+                    />
                   ) : (
                     <AddressForm onSubmit={handleAddressSubmit} />
                   )}
