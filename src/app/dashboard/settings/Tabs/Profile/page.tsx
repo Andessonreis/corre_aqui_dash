@@ -16,7 +16,7 @@ interface StoreData {
     name: string
   }
   image_url: string
-  banner_image_url: string
+  banner_url: string
   addresses: Array<{
     street: string
     number: string
@@ -70,7 +70,7 @@ export function Profile() {
         const { data: store, error: storeError } = await supabase
           .from('stores')
           .select(`
-            id, name, description, category_id, image_url, banner_image_url,
+            id, name, description, category_id, image_url, banner_url,
             addresses!addresses_store_id_fkey (
               street, number, neighborhood, city, state, postal_code
             ),
@@ -149,7 +149,7 @@ export function Profile() {
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIuNjI2NiAxMi42MjY2QzE0LjU5ODIgMTAuNjU1MSAxNC41OTgyIDcuMzQ0ODggMTIuNjI2NiA1LjM3MzM2QzEwLjY1NTEgMy40MDE4NSA3LjM0NDg4IDMuNDAxODUgNS4zNzMzNiA1LjM3MzM2QzMuNDAxODUgNy4zNDQ4OCAzLjQwMTg1IDEwLjY1NTEgNS4zNzMzNiAxMi42MjY2QzcuMzQ0ODggMTQuNTk4MiAxMC42NTUxIDE0LjU5ODIgMTIuNjI2NiAxMi42MjY2WiIgc3Ryb2tlPSIjMDBGN0ZGIiBzdHJva2Utb3BhY2l0eT0iMC4xIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==')] opacity-5" />
 
       <img
-        src={storeData.banner_image_url || 'https://source.unsplash.com/1200x400/?cyberpunk,night'}
+        src={storeData.banner_url || 'https://source.unsplash.com/1200x400/?cyberpunk,night'}
         alt="Banner"
         className="w-full h-full object-cover opacity-90 mix-blend-soft-light"
       />
