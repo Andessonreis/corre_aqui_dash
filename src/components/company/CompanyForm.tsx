@@ -230,8 +230,9 @@ export function CompanyForm({
             <img
               src={showImagePreview}
               alt="Preview"
-              className="w-full h-full object-contain"
+              className="max-w-full max-h-[80vh] object-contain rounded-xl"
             />
+
             <button
               className="absolute top-2 right-2 bg-gray-900/60 text-white rounded-full p-2"
               onClick={() => setShowImagePreview(null)}

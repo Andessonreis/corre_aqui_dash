@@ -249,24 +249,31 @@ export default function ProfileSetupPage() {
                 transition={{ delay: 0.5 }}
               >
                 {/* Banner preview */}
-                <div className="h-24 bg-gradient-to-r from-indigo-600 to-red-500 relative">
+                <div className="relative w-full aspect-video bg-gradient-to-r from-indigo-600 to-red-500">
                   {bannerImageUrl ? (
-                    <img src={bannerImageUrl} alt="Banner" className="w-full h-full object-cover" />
+                    <img
+                      src={bannerImageUrl}
+                      alt="Banner"
+                      className="w-full h-full object-cover object-center rounded-t-2xl md:rounded-t-3xl"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-white/50 text-sm">Pré-visualização do banner</span>
                     </div>
                   )}
-                </div>
-                
+                </div>   
                 {/* Logo preview */}
                 <div className="p-4 flex items-start space-x-3">
-                  <div className="w-16 h-16 bg-white rounded-xl overflow-hidden -mt-8 ring-4 ring-gray-900 shadow-lg">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-xl overflow-hidden -mt-8 ring-4 ring-gray-900 shadow-lg">
                     {profileImageUrl ? (
-                      <img src={profileImageUrl} alt="Logo" className="w-full h-full object-cover" />
+                      <img
+                        src={profileImageUrl}
+                        alt="Logo"
+                        className="w-full h-full object-cover object-center"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <span className="text-gray-500 text-xs">Pré-visualização da logo</span>
+                        <span className="text-gray-500 text-xs text-center">Pré-visualização da logo</span>
                       </div>
                     )}
                   </div>
@@ -361,7 +368,7 @@ export default function ProfileSetupPage() {
                   )}
                 </motion.div>
               </AnimatePresence>
-            </div>
+            </div>11
           </motion.div>
         </motion.div>
       </div>
