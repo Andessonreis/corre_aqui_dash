@@ -1,26 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { AddressForm } from "@/components/company/AddressForm";
-import { motion, AnimatePresence } from "framer-motion";
-import { Store, MapPin, CheckCircle } from "lucide-react";
+import { ImageForm } from "@/components/company/ImageForm";
+import { Button } from "@/components/ui/Button";
 import { supabase } from "@/lib/client";
+import { SetupSidebar } from "@/components/company/setup/SetupSidebar";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Store, MapPin, ArrowRight, Check, Shield, Image } from "lucide-react";
 
 export default function ProfileSetupPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"store" | "location">("store");
+  // Estados para controlar a aba ativa e os dados do formulário
+  const [activeTab, setActiveTab] = useState<"store" | "image" | "location">("store");
   const [companyData, setCompanyData] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
-  const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(null)
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(null);
+  
+  // Computed property to check if images are completed
+  const imagesCompleted = profileImageUrl !== null && bannerImageUrl !== null;
 
-  // Busca o usuário e o perfil ao carregar a página
+  // Efeito para buscar usuário e perfil ao carregar a página
   useEffect(() => {
     const fetchUserAndProfile = async () => {
+      // Busca o usuário logado
       const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      // Redireciona se não estiver logado
       if (userError || !userData.user) {
         router.push("/signin");
         return;
@@ -47,42 +58,52 @@ export default function ProfileSetupPage() {
     fetchUserAndProfile();
   }, [router]);
 
-  // Função para lidar com o envio dos dados da loja
+  // Função para lidar com o envio do formulário da empresa
   const handleCompanySubmit = async (values: any) => {
     if (!user || !profile) return;
-  
-    const finalProfileUrl = values.store_image_url || profileImageUrl;
-    const finalBannerUrl = values.banner_image_url || bannerImageUrl;
-  
-    if (!finalProfileUrl || !finalBannerUrl) {
-      alert("Por favor, faça upload da logo e do banner antes de prosseguir.");
-      return;
-    }
-  
-    // Restante da lógica de verificação de CNPJ...
+
+    // Verifica se já existe uma loja com o mesmo CNPJ
     const { data: existingStore, error: cnpjError } = await supabase
       .from("stores")
       .select("id")
       .eq("cnpj", values.cnpj)
       .maybeSingle();
-  
+
     if (existingStore) {
       alert("Já existe uma loja com este CNPJ.");
       return;
     }
-  
+
+    // Atualiza os dados da empresa e muda para a aba de imagem
     values.name = profile.name;
-    values.image_url = finalProfileUrl; 
-    values.banner_url = finalBannerUrl;
-  
     setCompanyData(values);
+    setActiveTab("image");
+  };
+
+  // Função para lidar com o envio das imagens
+  const handleImagesSubmit = () => {
+    // Valida se as imagens foram enviadas
+    if (!profileImageUrl || !bannerImageUrl) {
+      alert("Por favor, envie a logo e o banner antes de continuar.");
+      return;
+    }
+
+    // Atualiza os dados da empresa com as URLs das imagens
+    setCompanyData((prev: any) => ({
+      ...prev,
+      image_url: profileImageUrl,
+      banner_url: bannerImageUrl
+    }));
+
+    // Avança para a aba de localização
     setActiveTab("location");
   };
-  
-  // Função para obter latitude e longitude a partir do endereço
+
+  // Função para obter coordenadas geográficas a partir de um endereço
   const getLatLongFromAddress = async (values: any) => {
     try {
-      const addressComponents = [
+      // Monta o endereço completo para a busca
+      const address = [
         values.street,
         values.number,
         values.neighborhood,
@@ -91,50 +112,50 @@ export default function ProfileSetupPage() {
         values.postal_code,
         "Brasil"
       ].filter(Boolean).join(", ");
-  
+
+      // Faz a requisição para a API de geocodificação
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressComponents)}`,
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`,
         {
           headers: {
             "User-Agent": "CorreAqui (contact@correaqui.com)"
           }
         }
       );
-  
+
       if (!response.ok) throw new Error("Erro na resposta da API");
-      
+
       const data = await response.json();
-  
+
       if (!data.length) {
-        throw new Error("Endereço não encontrado. Verifique os dados informados.");
+        throw new Error("Endereço não encontrado.");
       }
-  
+
+      // Extrai as coordenadas da resposta
       const { lat, lon } = data[0];
-      return { 
+      return {
         latitude: parseFloat(lat),
         longitude: parseFloat(lon)
       };
-  
     } catch (error) {
-      console.error("Erro detalhado:", error);
-      throw new Error("Não foi possível determinar a localização. Verifique o endereço ou tente novamente mais tarde.");
+      console.error("Erro ao obter localização:", error);
+      throw new Error("Não foi possível determinar a localização.");
     }
   };
-
-  // Função para lidar com o envio dos dados de endereço
+  
+  // Função para lidar com o envio do endereço
   const handleAddressSubmit = async (values: any) => {
+    // Verifica se todos os dados necessários estão disponíveis
     if (!companyData || !user || !profile) return;
 
     try {
-      // Formata o endereço completo
-      const address = `${values.street}, ${values.number}, ${values.neighborhood}, ${values.city}, ${values.state}, ${values.postal_code}, Brasil`;
+      // Obtém as coordenadas geográficas do endereço
+      const { latitude, longitude } = await getLatLongFromAddress(values);
 
-      // Obtém latitude e longitude a partir do endereço
-      const { latitude, longitude } = await getLatLongFromAddress(address);
-
+      // Separa o CPF dos outros dados da empresa
       const { cpf, ...storeData } = companyData;
 
-      // Cria o owner (responsável) na tabela owners
+      // Cria o registro do proprietário no banco de dados
       const { data: owner, error: ownerError } = await supabase
         .from("owners")
         .insert([{ user_id: profile.id, cpf }])
@@ -143,234 +164,280 @@ export default function ProfileSetupPage() {
 
       if (ownerError) throw ownerError;
 
-      // Cria a loja na tabela stores
+      // Cria o registro da loja no banco de dados
       const { data: store, error: storeError } = await supabase
         .from("stores")
         .insert([{ ...storeData, owner_id: owner.id, latitude, longitude }])
         .select()
         .single();
 
+      if (storeError) throw new Error(`Erro na criação da loja: ${storeError.message}`);
 
-        if (storeError) throw new Error(`Erro na store: ${storeError.message}`);
+      // Cria o registro de endereço no banco de dados
+      const { error: addressError } = await supabase.from("addresses").insert([
+        {
+          store_id: store.id,
+          profile_id: profile.id,
+          street: values.street,
+          number: values.number,
+          neighborhood: values.neighborhood,
+          city: values.city,
+          state: values.state,
+          postal_code: values.postal_code,
+          country: "Brasil",
+          latitude,
+          longitude
+        }
+      ]);
 
-        // Criar address
-        const { error: addressError } = await supabase.from("addresses").insert([
-          {
-            store_id: store.id,
-            profile_id: profile.id,
-            street: values.street,
-            number: values.number,
-            neighborhood: values.neighborhood,
-            city: values.city,
-            state: values.state,
-            postal_code: values.postal_code,
-            country: 'Brasil',
-            latitude,
-            longitude
-          },
-        ]);
-  
-        if (addressError) throw new Error(`Erro no address: ${addressError.message}`);
+      if (addressError) throw new Error(`Erro no endereço: ${addressError.message}`);
 
-      // Redireciona para o dashboard após o sucesso
+      // Redireciona para o dashboard após cadastro completo
       router.push("/dashboard");
     } catch (error) {
-      console.error("Erro ao salvar os dados:", error);
+      console.error("Erro ao salvar dados:", error);
       alert("Erro ao salvar os dados. Tente novamente.");
     }
   };
 
+  const calculateProgress = () => {
+    if (activeTab === "store") return 33;
+    if (activeTab === "image") return 66;
+    return 100;
+  };
+
+
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black p-0 m-0 overflow-hidden">
+    <div className="min-h-screen w-full bg-gray-500">
+  
       {/* Background elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-        <div className="absolute top-20 right-20 w-32 h-32 bg-red-500 rounded-full opacity-20 blur-3xl"></div>
-        <div className="absolute bottom-20 left-40 w-64 h-64 bg-indigo-600 rounded-full opacity-20 blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-purple-600 rounded-full opacity-20 blur-3xl"></div>
+      <div className="absolute inset-0 overflow-hidden z-0">
+        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-red-500/5 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-indigo-500/5 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute top-1/4 left-1/4 w-1/4 h-1/4 bg-gradient-to-tr from-amber-500/5 to-transparent rounded-full blur-3xl"></div>
       </div>
-
+  
       {/* Main layout */}
-      <div className="relative w-full h-screen flex">
-        {/* Left sidebar/preview panel - Always visible */}
-        <motion.div
-          className="hidden lg:block w-2/5 h-screen bg-black/30 backdrop-blur-sm p-10 overflow-hidden"
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="h-full flex flex-col justify-between">
-            <div>
+      <div className="relative z-10 flex flex-col w-full min-h-screen lg:flex-row">
+  
+        {/* Left sidebar/preview panel - Hidden on mobile */}
+        <div className="hidden lg:block">
+          <SetupSidebar
+            activeTab={activeTab}
+            companyData={companyData}
+            imagesCompleted={imagesCompleted}
+            setActiveTab={setActiveTab}
+          />
+        </div>
+  
+        {/* Formulário principal - Ocupa todo o espaço restante */}
+        <div className="flex-1 flex justify-center p-4 sm:p-6 md:p-8 lg:pt-20 lg:pb-10 w-full">
+          <motion.div
+            className="w-full max-w-3xl mx-auto bg-white rounded-2xl shadow-lg overflow-auto lg:max-h-[85vh]"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Header moderno com elemento decorativo */}
+            <div className="relative overflow-hidden">
+              {/* Elemento decorativo de fundo */}
+              <div className="absolute inset-0 bg-gradient-to-r from-red-50 via-indigo-50 to-red-50 opacity-70" />
+  
+              {/* Círculos decorativos animados */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="mb-8"
-              >
-                <h1 className="text-4xl font-bold text-white mb-4">Crie sua presença digital</h1>
-                <p className="text-gray-300">Configure sua loja e comece a vender mais em minutos.</p>
-              </motion.div>
-
-              <div className="space-y-6 mt-12">
-                <motion.div
-                  className={`flex items-center space-x-4 p-4 rounded-xl ${activeTab === "store" ? "bg-red-500/20 border border-red-500/30" : "bg-gray-800/50"}`}
-                  whileHover={{ x: 5 }}
-                >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === "store" ? "bg-red-500" : "bg-gray-700"}`}>
-                    <Store className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium">Detalhes da Loja</h3>
-                    <p className="text-sm text-gray-400">Informações básicas do seu negócio</p>
-                  </div>
-                  {companyData && <CheckCircle className="w-5 h-5 text-green-500 ml-auto" />}
-                </motion.div>
-
-                <motion.div
-                  className={`flex items-center space-x-4 p-4 rounded-xl ${activeTab === "location" ? "bg-red-500/20 border border-red-500/30" : "bg-gray-800/50"}`}
-                  whileHover={{ x: 5 }}
-                >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === "location" ? "bg-red-500" : "bg-gray-700"}`}>
-                    <MapPin className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium">Localização</h3>
-                    <p className="text-sm text-gray-400">Endereço e informações de contato</p>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Preview section atualizada */}
-            {companyData && (
+                className="absolute top-4 right-12 w-16 h-16 rounded-full bg-red-500 opacity-10"
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.1, 0.15, 0.1]
+                }}
+                transition={{ duration: 6, repeat: Infinity }}
+              />
               <motion.div
-                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-xl mt-8"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                {/* Banner preview */}
-                <div className="relative w-full aspect-video bg-gradient-to-r from-indigo-600 to-red-500">
-                  {bannerImageUrl ? (
-                    <img
-                      src={bannerImageUrl}
-                      alt="Banner"
-                      className="w-full h-full object-cover object-center rounded-t-2xl md:rounded-t-3xl"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-white/50 text-sm">Pré-visualização do banner</span>
-                    </div>
-                  )}
-                </div>   
-                {/* Logo preview */}
-                <div className="p-4 flex items-start space-x-3">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-xl overflow-hidden -mt-8 ring-4 ring-gray-900 shadow-lg">
-                    {profileImageUrl ? (
-                      <img
-                        src={profileImageUrl}
-                        alt="Logo"
-                        className="w-full h-full object-cover object-center"
+                className="absolute bottom-4 left-12 w-24 h-24 rounded-full bg-indigo-500 opacity-10"
+                animate={{
+                  scale: [1.2, 1, 1.2],
+                  opacity: [0.1, 0.15, 0.1]
+                }}
+                transition={{ duration: 6, repeat: Infinity, delay: 1 }}
+              />
+  
+              {/* Conteúdo do cabeçalho */}
+              <div className="relative px-6 sm:px-8 py-6 sm:py-8">
+                {/* Seletor de abas visível apenas em dispositivos móveis */}
+                <div className="lg:hidden mb-4">
+                  <select 
+                    value={activeTab}
+                    onChange={(e) => {
+                      // Type assertion para resolver o problema de tipagem
+                      const newTab = e.target.value as "store" | "image" | "location";
+                      setActiveTab(newTab);
+                    }}
+                    className="w-full py-2 px-3 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-700 text-sm"
+                  >
+                    <option value="store">Detalhes da Loja</option>
+                    <option value="image" disabled={!companyData}>Imagens da Loja</option>
+                    <option value="location" disabled={!companyData}>Localização</option>
+                  </select>
+                </div>
+                
+                <motion.div
+                  initial={{ x: -30, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    {activeTab === "store"
+                      ? "Detalhes da Loja"
+                      : activeTab === "image"
+                        ? "Imagens da Loja"
+                        : "Localização"}
+                  </h2>
+  
+                  <p className="text-gray-500 mt-1">
+                    {activeTab === "store"
+                      ? "Personalize suas informações básicas"
+                      : activeTab === "image"
+                        ? "Adicione o logo e banner da sua loja"
+                        : "Configure seu endereço e contato"}
+                  </p>
+                </motion.div>
+  
+                {/* Indicador de progresso elegante */}
+                <div className="flex items-center mt-6">
+                  <div className="flex-1">
+                    <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-red-500 to-red-400"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${calculateProgress()}%` }}
+                        transition={{ duration: 0.8 }}
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                        <span className="text-gray-500 text-xs text-center">Pré-visualização da logo</span>
-                      </div>
-                    )}
+                    </div>
                   </div>
-                  <div className="pt-2">
-                    <h3 className="text-white font-medium">{companyData.name}</h3>
-                    <p className="text-sm text-gray-400 mt-1">{companyData.description}</p>
+                  <div className="ml-4 text-sm font-medium text-gray-500">
+                    {activeTab === "store"
+                      ? "Etapa 1/3"
+                      : activeTab === "image"
+                        ? "Etapa 2/3"
+                        : "Etapa 3/3"}
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Right side - Form area */}
-        <motion.div
-          className="w-full lg:w-3/5 h-screen bg-white/10 backdrop-blur-md flex items-center justify-center p-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-        >
-          <motion.div
-            className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden"
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            {/* Form header */}
-            <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-red-500 p-6">
-              <motion.h2
-                className="text-3xl font-bold text-white"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                {activeTab === "store" ? "Informações da Loja" : "Localização"}
-              </motion.h2>
-              <div className="w-full h-1 bg-white/20 rounded-full mt-4">
-                <motion.div
-                  className="h-full bg-white rounded-full"
-                  initial={{ width: "0%" }}
-                  animate={{ width: activeTab === "store" ? "50%" : "100%" }}
-                  transition={{ duration: 0.5 }}
-                />
               </div>
             </div>
-
-            {/* Tabs navigation */}
-            <div className="bg-gray-50 px-6 pt-4 pb-4 flex space-x-2">
-              <button
+  
+  
+            {/* Navegação com botões elegantes - visível apenas em desktop */}
+            <div className="hidden lg:flex px-8 py-4 gap-4">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab("store")}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${
-                  activeTab === "store"
-                    ? "bg-white shadow text-red-600"
-                    : "bg-transparent text-gray-600 hover:bg-white/60"
-                }`}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${activeTab === "store"
+                  ? "bg-red-500 text-white shadow-md shadow-red-100"
+                  : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  }`}
               >
-                <Store className="w-4 h-4 mr-2" />
-                Loja
-              </button>
-
-              <button
+                <motion.div
+                  initial={{ rotate: 0 }}
+                  animate={activeTab === "store" ? { rotate: [0, -10, 0] } : {}}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <Store className="w-4 h-4 mr-2" />
+                </motion.div>
+                Detalhes da Loja
+              </motion.button>
+  
+              <motion.button
+                whileHover={companyData ? { scale: 1.02 } : {}}
+                whileTap={companyData ? { scale: 0.98 } : {}}
+                onClick={() => companyData && setActiveTab("image")}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${activeTab === "image"
+                  ? "bg-red-500 text-white shadow-md shadow-red-100"
+                  : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  } ${!companyData ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                <motion.div
+                  initial={{ rotate: 0 }}
+                  animate={activeTab === "image" ? { rotate: [0, 10, 0] } : {}}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <Image className="w-4 h-4 mr-2" />
+                </motion.div>
+                Imagens
+              </motion.button>
+  
+  
+              <motion.button
+                whileHover={companyData ? { scale: 1.02 } : {}}
+                whileTap={companyData ? { scale: 0.98 } : {}}
                 onClick={() => companyData && setActiveTab("location")}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${
-                  activeTab === "location"
-                    ? "bg-white shadow text-red-600"
-                    : "bg-transparent text-gray-600 hover:bg-white/60"
-                } ${!companyData ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${activeTab === "location"
+                  ? "bg-red-500 text-white shadow-md shadow-red-100"
+                  : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  } ${!companyData ? "opacity-40 cursor-not-allowed" : ""}`}
               >
-                <MapPin className="w-4 h-4 mr-2" />
+                <motion.div
+                  initial={{ rotate: 0 }}
+                  animate={activeTab === "location" ? { rotate: [0, 10, 0] } : {}}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                </motion.div>
                 Localização
-              </button>
+              </motion.button>
             </div>
-
-            {/* Form container */}
-            <div className="p-6">
+  
+            {/* Linha separadora com elemento decorativo */}
+            <div className="px-8 relative">
+              <div className="w-full h-px bg-gray-100" />
+              <motion.div
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm"
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <div className="w-2 h-2 bg-red-500 rounded-full" />
+              </motion.div>
+            </div>
+  
+            {/* Conteúdo do formulário  */}
+            <div className="p-4 sm:p-8">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.4 }}
                 >
                   {activeTab === "store" ? (
-                    <CompanyForm 
+                    <CompanyForm
                       onSubmit={handleCompanySubmit}
-                      onLogoUpload={(url) => setProfileImageUrl(url)}
-                      onBannerUpload={(url) => setBannerImageUrl(url)}
                     />
+                  ) : activeTab === "image" ? (
+                    <ImageForm onSubmit={handleImagesSubmit} />
                   ) : (
                     <AddressForm onSubmit={handleAddressSubmit} />
                   )}
                 </motion.div>
               </AnimatePresence>
-            </div>11
+            </div>
+  
+            {/* Rodapé com botão de navegação */}
+            <div className="bg-gray-50 px-6 sm:px-8 py-4 sm:py-6 flex items-center justify-between border-t border-gray-100">
+              <div className="flex items-center text-gray-500">
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="mr-2"
+                >
+                  <Shield className="w-4 h-4 text-red-500" />
+                </motion.div>
+                <span className="text-xs">Seus dados estão seguros</span>
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
