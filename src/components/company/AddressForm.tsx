@@ -8,6 +8,15 @@ import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Building } from "lucide-react";
 import { useState } from "react";
 
+// Função para aplicar máscara visual no CEP (00000-000)
+const formatCep = (value: string) => {
+  const cleaned = value.replace(/\D/g, "");
+  if (cleaned.length <= 5) return cleaned;
+  return `${cleaned.slice(0, 5)}-${cleaned.slice(5, 8)}`;
+};
+
+const removeMask = (value: string) => value.replace(/\D/g, "");
+
 interface AddressFormValues {
   street: string;
   number: string;
@@ -30,18 +39,26 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
       postal_code: "",
     },
     validationSchema: Yup.object({
-      street: Yup.string().required("Rua obrigatória"),
-      number: Yup.string().required("Número obrigatório"),
-      neighborhood: Yup.string().required("Bairro obrigatório"),
-      city: Yup.string().required("Cidade obrigatória"),
-      state: Yup.string().required("Estado obrigatório"),
-      postal_code: Yup.string().length(8, "CEP inválido").required("CEP obrigatório"),
+      street: Yup.string().required(),
+      number: Yup.string().required(),
+      neighborhood: Yup.string().required(),
+      city: Yup.string().required(),
+      state: Yup.string().required(),
+      postal_code: Yup.string()
+        .length(9)
+        .required(),
     }),
-    onSubmit,
+    onSubmit: (values) => {
+      const valuesUnmasked = {
+        ...values,
+        postal_code: removeMask(values.postal_code),
+      };
+      onSubmit(valuesUnmasked);
+    },
   });
 
   const handleCepBlur = async () => {
-    const cep = formik.values.postal_code;
+    const cep = removeMask(formik.values.postal_code);
     if (cep.length === 8) {
       setLoadingCep(true);
       try {
@@ -60,7 +77,12 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
     }
   };
 
-  // Animation variants
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCep(e.target.value);
+    formik.setFieldValue("postal_code", formatted);
+  };
+
+  // Animações
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -80,123 +102,219 @@ export function AddressForm({ onSubmit }: { onSubmit: (values: AddressFormValues
     },
   };
 
+  const shouldShowError = (field: keyof AddressFormValues) =>
+    !!(formik.touched[field] && formik.errors[field]);
+  
+
   return (
     <motion.form
       onSubmit={formik.handleSubmit}
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-8"
     >
-      <motion.div
-        variants={itemVariants}
-        className="space-y-1"
-      >
-        <div className="flex items-center mb-2">
-          <MapPin className="w-4 h-4 mr-2 text-red-500" />
-          <h3 className="font-medium text-gray-700">Endereço de Localização</h3>
-        </div>
-        <Input
-          label="CEP"
-          {...formik.getFieldProps("postal_code")}
-          onBlur={handleCepBlur}
-          disabled={loadingCep}
-          placeholder="00000-000"
-          className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-          error={formik.touched.postal_code ? formik.errors.postal_code : undefined}
-        />
-        {formik.touched.postal_code && formik.errors.postal_code && (
-          <p className="mt-1 text-sm text-red-500">{formik.errors.postal_code}</p>
-        )}
-      </motion.div>
-
-      <motion.div
-        variants={itemVariants}
-        className="space-y-1"
-      >
-        <div className="flex items-center mb-2">
-          <Building className="w-4 h-4 mr-2 text-red-500" />
-          <h3 className="font-medium text-gray-700">Informações do Endereço</h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <Input
-              label="Rua"
-              {...formik.getFieldProps("street")}
-              placeholder="Ex: Av. Paulista"
-              className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.street ? formik.errors.street : undefined}
-            />
-            {formik.touched.street && formik.errors.street && (
-              <p className="mt-1 text-sm text-red-500">{formik.errors.street}</p>
-            )}
+      {/* Seção de Título e Descrição */}
+      <motion.div variants={itemVariants} className="mb-3">
+        <div className="flex items-center mb-3">
+          <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center mr-3">
+            <MapPin className="w-5 h-5 text-red-500" />
           </div>
-
           <div>
-            <Input
-              label="Número"
-              {...formik.getFieldProps("number")}
-              placeholder="Ex: 1000"
-              className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.number ? formik.errors.number : undefined}
-            />
-            {formik.touched.number && formik.errors.number && (
-              <p className="mt-1 text-sm text-red-500">{formik.errors.number}</p>
-            )}
-          </div>
-        </div>
-
-        <Input
-          label="Bairro"
-          {...formik.getFieldProps("neighborhood")}
-          placeholder="Ex: Centro"
-          className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700 mt-4"
-          error={formik.touched.neighborhood ? formik.errors.neighborhood : undefined}
-        />
-        {formik.touched.neighborhood && formik.errors.neighborhood && (
-          <p className="mt-1 text-sm text-red-500">{formik.errors.neighborhood}</p>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          <div>
-            <Input
-              label="Cidade"
-              {...formik.getFieldProps("city")}
-              placeholder="Ex: São Paulo"
-              className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.city ? formik.errors.city : undefined}
-            />
-            {formik.touched.city && formik.errors.city && (
-              <p className="mt-1 text-sm text-red-500">{formik.errors.city}</p>
-            )}
-          </div>
-
-          <div>
-            <Input
-              label="Estado"
-              {...formik.getFieldProps("state")}
-              placeholder="Ex: SP"
-              className="w-full !bg-gray-50 border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-xl px-4 py-3 text-gray-700"
-              error={formik.touched.state ? formik.errors.state : undefined}
-            />
-            {formik.touched.state && formik.errors.state && (
-              <p className="mt-1 text-sm text-red-500">{formik.errors.state}</p>
-            )}
+            <h3 className="font-semibold text-gray-800">Endereço</h3>
+            <p className="text-sm text-gray-500">Informe onde sua empresa está localizada</p>
           </div>
         </div>
       </motion.div>
 
-      <motion.div
-        variants={itemVariants}
+      {/* Campo CEP */}
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="p-5 bg-white border border-gray-100 rounded-xl shadow-sm">
+          <Input
+            label="CEP"
+            labelClassName="text-gray-700 font-medium mb-1.5 block"
+            name="postal_code"
+            value={formik.values.postal_code}
+            onChange={handleCepChange}
+            onBlur={handleCepBlur}
+            disabled={loadingCep}
+            placeholder="00000-000"
+            className="w-full !bg-white border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-gray-700 shadow-sm"
+            error={shouldShowError('postal_code') ? formik.errors.postal_code : undefined}
+          />
+          {shouldShowError('postal_code') && (
+            <motion.p 
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-1.5 text-sm text-red-500 flex items-center"
+            >
+              <span className="inline-block w-4 h-4 mr-1">⚠️</span>
+              {formik.errors.postal_code}
+            </motion.p>
+          )}
+          {loadingCep && (
+            <p className="mt-2 text-sm text-gray-500">Buscando informações do CEP...</p>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Informações do Endereço */}
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="flex items-center mb-3">
+          <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center mr-3">
+            <Building className="w-5 h-5 text-red-500" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800">Informações do Endereço</h3>
+            <p className="text-sm text-gray-500">Complete os dados da localização</p>
+          </div>
+        </div>
+        
+        <div className="p-5 bg-white border border-gray-100 rounded-xl shadow-sm space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <Input
+                label="Rua"
+                labelClassName="text-gray-700 font-medium mb-1.5 block"
+                name="street"
+                value={formik.values.street}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                placeholder="Ex: Av. Paulista"
+                className="w-full !bg-white border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-gray-700 shadow-sm"
+                error={shouldShowError('street') ? formik.errors.street : undefined}
+              />
+              {shouldShowError('street') && (
+                <motion.p 
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1.5 text-sm text-red-500 flex items-center"
+                >
+                  <span className="inline-block w-4 h-4 mr-1">⚠️</span>
+                  {formik.errors.street}
+                </motion.p>
+              )}
+            </div>
+
+            <div>
+              <Input
+                label="Número"
+                labelClassName="text-gray-700 font-medium mb-1.5 block"
+                name="number"
+                value={formik.values.number}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                placeholder="Ex: 1000"
+                className="w-full !bg-white border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-gray-700 shadow-sm"
+                error={shouldShowError('number') ? formik.errors.number : undefined}
+              />
+              {shouldShowError('number') && (
+                <motion.p 
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1.5 text-sm text-red-500 flex items-center"
+                >
+                  <span className="inline-block w-4 h-4 mr-1">⚠️</span>
+                  {formik.errors.number}
+                </motion.p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Input
+              label="Bairro"
+              labelClassName="text-gray-700 font-medium mb-1.5 block"
+              name="neighborhood"
+              value={formik.values.neighborhood}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              placeholder="Ex: Centro"
+              className="w-full !bg-white border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-gray-700 shadow-sm"
+              error={shouldShowError('neighborhood') ? formik.errors.neighborhood : undefined}
+            />
+            {shouldShowError('neighborhood') && (
+              <motion.p 
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-1.5 text-sm text-red-500 flex items-center"
+              >
+                <span className="inline-block w-4 h-4 mr-1">⚠️</span>
+                {formik.errors.neighborhood}
+              </motion.p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <Input
+                label="Cidade"
+                labelClassName="text-gray-700 font-medium mb-1.5 block"
+                name="city"
+                value={formik.values.city}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                placeholder="Ex: São Paulo"
+                className="w-full !bg-white border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-gray-700 shadow-sm"
+                error={shouldShowError('city') ? formik.errors.city : undefined}
+              />
+              {shouldShowError('city') && (
+                <motion.p 
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1.5 text-sm text-red-500 flex items-center"
+                >
+                  <span className="inline-block w-4 h-4 mr-1">⚠️</span>
+                  {formik.errors.city}
+                </motion.p>
+              )}
+            </div>
+
+            <div>
+              <Input
+                label="Estado"
+                labelClassName="text-gray-700 font-medium mb-1.5 block"
+                name="state"
+                value={formik.values.state}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                placeholder="Ex: SP"
+                className="w-full !bg-white border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-gray-700 shadow-sm"
+                error={shouldShowError('state') ? formik.errors.state : undefined}
+              />
+              {shouldShowError('state') && (
+                <motion.p 
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1.5 text-sm text-red-500 flex items-center"
+                >
+                  <span className="inline-block w-4 h-4 mr-1">⚠️</span>
+                  {formik.errors.state}
+                </motion.p>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Botão de submissão */}
+      <motion.div 
+        variants={itemVariants} 
         className="pt-4"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
       >
         <Button
           type="submit"
-          className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center"
+          className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3.5 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center"
         >
           Finalizar Cadastro
-          <ArrowRight className="w-4 h-4 ml-2" />
+          <motion.div
+            animate={{ x: [0, 5, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+          >
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </motion.div>
         </Button>
       </motion.div>
     </motion.form>

@@ -42,7 +42,6 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
 
   return (
     <div className="w-full">
-      <label className="block text-gray-700 font-medium mb-2">Categoria *</label>
 
       <motion.div 
         whileFocus={{ scale: 1.02 }} 
