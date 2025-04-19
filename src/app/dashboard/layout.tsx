@@ -8,7 +8,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    setTheme('dark');
+    setTheme('light');
   }, []);
 
   return (

@@ -1,82 +1,97 @@
-// src/components/Sidebar/Profile.tsx
-import { LogOut } from "lucide-react";
-import { Button } from "../ui/Button";
-import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { supabase } from "@/lib/client";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
-export interface ProfileProps {}
+type ProfileData = {
+  store_image_url?: string;
+  store_name?: string;
+};
 
 export function Profile() {
-  const user = useUser();
-  const supabase = useSupabaseClient();
-  const [userData, setUserData] = useState<{
-    profile_image_url?: string;
-    name?: string;
-    email?: string;
-  }>({});
+  const [data, setData] = useState<ProfileData>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (user) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("profile_image_url, name, email")
-          .eq("id", user.id)
-          .single();
+    const fetchProfileAndStore = async () => {
+      setLoading(true);
+      setError(null);
 
-        if (!error && data) {
-          setUserData(data);
-        } else {
-          setUserData({
-            profile_image_url: user.user_metadata.avatar_url,
-            name: user.user_metadata.full_name || user.email,
-            email: user.email,
-          });
+      try {
+
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData?.user) {
+          setError("Você precisa estar logado para ver sua loja.");
+          return;
         }
+
+        const user = authData.user;
+
+        const { data: owner, error: ownerErr } = await supabase
+          .from("owners")
+          .select("id")
+          .eq("user_id", user.id)
+          .single();
+        if (ownerErr || !owner) {
+          throw new Error(ownerErr?.message || "Owner não encontrado");
+        }
+
+        const { data: store, error: storeErr } = await supabase
+          .from("stores")
+          .select("id, name, image_url")
+          .eq("owner_id", owner.id)
+          .single();
+        if (storeErr || !store) {
+          throw new Error(storeErr?.message || "Loja não encontrada");
+        }
+
+        setData({
+          store_image_url: store.image_url,
+          store_name: store.name,
+        });
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [user, supabase]);
+    fetchProfileAndStore();
+  }, []);
 
-  if (!user) return null;
+  if (loading) {
+    return <div className="px-4 py-2">Carregando perfil da loja...</div>;
+  }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
+  if (error) {
+    return <div className="px-4 py-2 text-red-600">Erro: {error}</div>;
+  }
+
+  if (!data.store_name) {
+    return null;
+  }
 
   return (
-    <div className="flex items-center gap-3">
-      {/* Avatar */}
+    <motion.div
+      whileHover={{ y: -3 }}
+      className="flex items-center gap-4 px-5 py-4 mx-4 mb-4 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm border border-gray-200"
+    >
       <img
         src={
-          userData.profile_image_url ||
+          data.store_image_url ||
           `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            userData.name || "User"
+            data.store_name
           )}&background=random`
         }
-        className="h-10 w-10 rounded-full"
-        alt="User avatar"
+        className="h-10 w-10 rounded-full object-cover border border-gray-200 shadow-sm"
+        alt="Store image"
       />
 
-      {/* Informações do usuário */}
-      <div className="flex flex-col truncate">
-        <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-100 truncate">
-          {userData.name}
-        </span>
-        <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
-          {userData.email}
-        </span>
+      <div className="overflow-hidden">
+        <p className="text-base font-medium text-gray-800 truncate">
+          {data.store_name}
+        </p>
       </div>
-
-      {/* Botão de logout */}
-      <Button 
-        variant="ghost" 
-        className="ml-auto p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-        onClick={handleLogout}
-      >
-        <LogOut className="h-5 w-5 text-zinc-500 dark:text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200" />
-      </Button>
-    </div>
+    </motion.div>
   );
 }
