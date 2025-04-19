@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState, useEffect, useCallback } from "react";
 import { OffersTable } from "@/components/offers/OffersTable";
 import { OfferForm } from "@/components/offers/OfferForm";
@@ -10,33 +9,12 @@ import { useOffers } from "@/hooks/useOffers";
 import type { Offer } from "@/types/offer";
 import { supabase } from "@/lib/client";
 
-interface OffersPageClientProps {
-  userId?: string;
-  submitOffer?: (data: Partial<Offer>) => Promise<void>;
-  stores: Array<{ id: string; name: string }>;
-  categories: Array<{ id: string; name: string }>;
-}
-
-const defaultSubmitOffer = async (data: Partial<Offer>): Promise<void> => {
-  const formattedData = {
-    ...data,
-    store_id: data.store_id ? Number(data.store_id) : null,
-    zone_id: data.zone_id ? Number(data.zone_id) : null,
-  };
-
-  const { error } = await supabase.from("offers").insert(formattedData);
-  if (error) throw error;
-};
-
-export default function OffersPageClient({
-  submitOffer = defaultSubmitOffer,
-  categories = [],
-}: OffersPageClientProps) {
+export default function OffersPageClient() {
   const { isFormOpen, editingOffer, openCreateForm, openEditForm, closeForm } = useOfferForm();
-  
+
   const [storeId, setStoreId] = useState<string>("");
   const [zoneId, setZoneId] = useState<string>("");
-  const [allCategories, setAllCategories] = useState(categories);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
 
   const { offers, loading, error, refetch } = useOffers(storeId);
 
@@ -51,19 +29,15 @@ export default function OffersPageClient({
     const fetchData = async () => {
       try {
         const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError) throw userError;
-        if (!userData?.user) throw new Error("Usuário não autenticado.");
-
-        const authenticatedUserId = userData.user.id;
+        if (userError || !userData?.user) throw new Error("Usuário não autenticado.");
 
         const { data: ownerData, error: ownerError } = await supabase
           .from("owners")
           .select("id")
-          .eq("user_id", authenticatedUserId)
+          .eq("user_id", userData.user.id)
           .single();
 
-        if (ownerError) throw ownerError;
-        if (!ownerData) throw new Error("Usuário não é um proprietário.");
+        if (ownerError || !ownerData) throw new Error("Usuário não é um proprietário.");
 
         const { data: storeData, error: storeError } = await supabase
           .from("stores")
@@ -71,35 +45,32 @@ export default function OffersPageClient({
           .eq("owner_id", ownerData.id)
           .single();
 
-        if (storeError) throw storeError;
+        if (storeError || !storeData) throw new Error("Loja não encontrada.");
 
         setStoreId(storeData.id.toString());
         setZoneId(storeData.zone_id?.toString() || "");
 
-        if (!categories.length) {
-          const { data: categoryData, error: categoryError } = await supabase
-            .from("categories")
-            .select("id, name");
+        const { data: categoryData, error: categoryError } = await supabase
+          .from("categories")
+          .select("id, name");
 
-          if (categoryError) throw categoryError;
-          setAllCategories(categoryData || []);
-        }
+        if (categoryError) throw categoryError;
+        setCategories(categoryData || []);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       }
     };
 
     fetchData();
-  }, [categories]);
+  }, []);
 
-
-  const handleFilterChange = (newFilters: Partial<{ search: string; status: string; category: string; sortBy: string }>) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setFilters((prev) => ({
+      ...prev,
       ...newFilters,
     }));
   };
-  
+
   const handleSubmitOffer = useCallback(
     async (data: Partial<Offer>) => {
       if (!storeId) {
@@ -108,14 +79,22 @@ export default function OffersPageClient({
       }
 
       try {
-        await submitOffer({ ...data, store_id: storeId, zone_id: zoneId });
+        const formattedData = {
+          ...data,
+          store_id: storeId,
+          zone_id: zoneId,
+        };
+
+        const { error } = await supabase.from("offers").insert(formattedData);
+        if (error) throw error;
+
         await refetch();
         closeForm();
       } catch (error) {
         console.error("Erro ao cadastrar oferta:", error);
       }
     },
-    [submitOffer, refetch, closeForm, storeId, zoneId]
+    [storeId, zoneId, closeForm, refetch]
   );
 
   return (
@@ -127,7 +106,7 @@ export default function OffersPageClient({
 
       <OffersFilters
         onFilterChange={handleFilterChange}
-        categories={allCategories.map((c) => c.name)}
+        categories={categories.map((c) => c.name)}
         statuses={["Ativa", "Inativa"]}
       />
 
@@ -138,10 +117,10 @@ export default function OffersPageClient({
         filters={filters}
         onCreateOffer={openCreateForm}
         onEditOffer={openEditForm}
-        onUpdateFilters={handleFilterChange} 
+        onUpdateFilters={handleFilterChange}
       />
 
-      {allCategories.length === 0 && (
+      {categories.length === 0 && (
         <div className="bg-yellow-100 p-4 rounded-md">
           <p className="text-yellow-800">
             Nenhuma categoria disponível. As ofertas precisam de categorias para serem criadas.
@@ -156,7 +135,7 @@ export default function OffersPageClient({
         onSubmit={handleSubmitOffer}
         storeId={storeId}
         zoneId={zoneId}
-        categories={allCategories}
+        categories={categories}
       />
     </div>
   );
