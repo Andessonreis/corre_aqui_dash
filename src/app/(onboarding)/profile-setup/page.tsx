@@ -3,14 +3,13 @@
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { AddressForm } from "@/components/company/AddressForm";
 import { ImageForm } from "@/components/company/ImageForm";
-import { Button } from "@/components/ui/Button";
 import { supabase } from "@/lib/client";
 import { SetupSidebar } from "@/components/company/setup/SetupSidebar";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Store, MapPin, ArrowRight, Check, Shield, Image } from "lucide-react";
+import { Store, MapPin, Shield, Image } from "lucide-react";
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -81,29 +80,31 @@ export default function ProfileSetupPage() {
   };
 
   // Função para lidar com o envio das imagens
-  const handleImagesSubmit = () => {
-    // Valida se as imagens foram enviadas
-    if (!profileImageUrl || !bannerImageUrl) {
+  const handleImagesSubmit = (storeImage: string, bannerImage: string) => {
+    if (!storeImage || !bannerImage) {
       alert("Por favor, envie a logo e o banner antes de continuar.");
       return;
     }
-
+  
+    // Atualiza as imagens no estado global da página
+    setProfileImageUrl(storeImage);
+    setBannerImageUrl(bannerImage);
+  
     // Atualiza os dados da empresa com as URLs das imagens
     setCompanyData((prev: any) => ({
       ...prev,
-      image_url: profileImageUrl,
-      banner_url: bannerImageUrl
+      image_url: storeImage,
+      banner_url: bannerImage
     }));
-
-    // Avança para a aba de localização
+  
     setActiveTab("location");
   };
+  
 
-  // Função para obter coordenadas geográficas a partir de um endereço
+  // Função para obter latitude e longitude a partir do endereço
   const getLatLongFromAddress = async (values: any) => {
     try {
-      // Monta o endereço completo para a busca
-      const address = [
+      const addressComponents = [
         values.street,
         values.number,
         values.neighborhood,
@@ -112,50 +113,50 @@ export default function ProfileSetupPage() {
         values.postal_code,
         "Brasil"
       ].filter(Boolean).join(", ");
-
-      // Faz a requisição para a API de geocodificação
+  
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`,
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressComponents)}`,
         {
           headers: {
             "User-Agent": "CorreAqui (contact@correaqui.com)"
           }
         }
       );
-
+  
       if (!response.ok) throw new Error("Erro na resposta da API");
-
+      
       const data = await response.json();
-
+  
       if (!data.length) {
-        throw new Error("Endereço não encontrado.");
+        throw new Error("Endereço não encontrado. Verifique os dados informados.");
       }
-
-      // Extrai as coordenadas da resposta
+  
       const { lat, lon } = data[0];
-      return {
+      return { 
         latitude: parseFloat(lat),
         longitude: parseFloat(lon)
       };
+  
     } catch (error) {
-      console.error("Erro ao obter localização:", error);
-      throw new Error("Não foi possível determinar a localização.");
+      console.error("Erro detalhado:", error);
+      throw new Error("Não foi possível determinar a localização. Verifique o endereço ou tente novamente mais tarde.");
     }
   };
-  
-  // Função para lidar com o envio do endereço
+
+  // Função para lidar com o envio dos dados de endereço
   const handleAddressSubmit = async (values: any) => {
-    // Verifica se todos os dados necessários estão disponíveis
     if (!companyData || !user || !profile) return;
 
     try {
-      // Obtém as coordenadas geográficas do endereço
-      const { latitude, longitude } = await getLatLongFromAddress(values);
+      // Formata o endereço completo
+      const address = `${values.street}, ${values.number}, ${values.neighborhood}, ${values.city}, ${values.state}, ${values.postal_code}, Brasil`;
 
-      // Separa o CPF dos outros dados da empresa
+      // Obtém latitude e longitude a partir do endereço
+      const { latitude, longitude } = await getLatLongFromAddress(address);
+
       const { cpf, ...storeData } = companyData;
 
-      // Cria o registro do proprietário no banco de dados
+      // Cria o owner (responsável) na tabela owners
       const { data: owner, error: ownerError } = await supabase
         .from("owners")
         .insert([{ user_id: profile.id, cpf }])
@@ -164,38 +165,39 @@ export default function ProfileSetupPage() {
 
       if (ownerError) throw ownerError;
 
-      // Cria o registro da loja no banco de dados
+      // Cria a loja na tabela stores
       const { data: store, error: storeError } = await supabase
         .from("stores")
         .insert([{ ...storeData, owner_id: owner.id, latitude, longitude }])
         .select()
         .single();
 
-      if (storeError) throw new Error(`Erro na criação da loja: ${storeError.message}`);
 
-      // Cria o registro de endereço no banco de dados
-      const { error: addressError } = await supabase.from("addresses").insert([
-        {
-          store_id: store.id,
-          profile_id: profile.id,
-          street: values.street,
-          number: values.number,
-          neighborhood: values.neighborhood,
-          city: values.city,
-          state: values.state,
-          postal_code: values.postal_code,
-          country: "Brasil",
-          latitude,
-          longitude
-        }
-      ]);
+        if (storeError) throw new Error(`Erro na store: ${storeError.message}`);
 
-      if (addressError) throw new Error(`Erro no endereço: ${addressError.message}`);
+        // Criar address
+        const { error: addressError } = await supabase.from("addresses").insert([
+          {
+            store_id: store.id,
+            profile_id: profile.id,
+            street: values.street,
+            number: values.number,
+            neighborhood: values.neighborhood,
+            city: values.city,
+            state: values.state,
+            postal_code: values.postal_code,
+            country: 'Brasil',
+            latitude,
+            longitude
+          },
+        ]);
+  
+        if (addressError) throw new Error(`Erro no address: ${addressError.message}`);
 
-      // Redireciona para o dashboard após cadastro completo
+      // Redireciona para o dashboard após o sucesso
       router.push("/dashboard");
     } catch (error) {
-      console.error("Erro ao salvar dados:", error);
+      console.error("Erro ao salvar os dados:", error);
       alert("Erro ao salvar os dados. Tente novamente.");
     }
   };
@@ -238,7 +240,7 @@ export default function ProfileSetupPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Header moderno com elemento decorativo */}
+            {/* Header */}
             <div className="relative overflow-hidden">
               {/* Elemento decorativo de fundo */}
               <div className="absolute inset-0 bg-gradient-to-r from-red-50 via-indigo-50 to-red-50 opacity-70" />
@@ -326,7 +328,7 @@ export default function ProfileSetupPage() {
             </div>
   
   
-            {/* Navegação com botões elegantes - visível apenas em desktop */}
+            {/* Navegação - visível apenas em desktop */}
             <div className="hidden lg:flex px-8 py-4 gap-4">
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -387,7 +389,7 @@ export default function ProfileSetupPage() {
               </motion.button>
             </div>
   
-            {/* Linha separadora com elemento decorativo */}
+            {/* Linha separadora  */}
             <div className="px-8 relative">
               <div className="w-full h-px bg-gray-100" />
               <motion.div
@@ -423,7 +425,7 @@ export default function ProfileSetupPage() {
               </AnimatePresence>
             </div>
   
-            {/* Rodapé com botão de navegação */}
+            {/* Rodapé */}
             <div className="bg-gray-50 px-6 sm:px-8 py-4 sm:py-6 flex items-center justify-between border-t border-gray-100">
               <div className="flex items-center text-gray-500">
                 <motion.div
